@@ -1,9 +1,11 @@
 """
 Review Agents - 包含 Security, Build, 和 BDL 三个子 agent
+支持结构化输出
 """
 from langchain_core.tools import tool
 from agents.base_agent import BaseAgent
 from tools import read_file, run_command, file_exists
+from utils.schemas import SecurityReviewResult, BuildReviewResult, BDLReviewResult
 
 
 @tool
@@ -63,7 +65,8 @@ Return a structured review with:
             name="SecurityReviewAgent",
             system_prompt=system_prompt,
             tools=tools,
-            temperature=0.1
+            temperature=0.1,
+            output_schema=SecurityReviewResult  # 使用结构化输出
         )
 
 
@@ -97,7 +100,8 @@ Return a structured review with:
             name="BuildReviewAgent",
             system_prompt=system_prompt,
             tools=tools,
-            temperature=0.1
+            temperature=0.1,
+            output_schema=BuildReviewResult  # 使用结构化输出
         )
 
 
@@ -133,5 +137,6 @@ Return a structured review with:
             name="BDLReviewAgent",
             system_prompt=system_prompt,
             tools=tools,
-            temperature=0.1
+            temperature=0.1,
+            output_schema=BDLReviewResult  # 使用结构化输出
         )

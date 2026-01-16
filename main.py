@@ -173,9 +173,32 @@ def main():
                     print(f"Code generated: {node_state.get('code_file_path', 'N/A')}")
                 elif node_name == "review_code" and "review_results" in node_state:
                     print("Review completed")
-                    print(f"  Security: {'PASSED' if 'no issues' in str(node_state['review_results'].get('security', '')).lower() else 'ISSUES FOUND'}")
-                    print(f"  Build: {'PASSED' if 'success' in str(node_state['review_results'].get('build', '')).lower() else 'ISSUES FOUND'}")
-                    print(f"  BDL: {'PASSED' if 'compliant' in str(node_state['review_results'].get('bdl', '')).lower() else 'ISSUES FOUND'}")
+                    # 处理结构化 review 结果
+                    security_data = node_state['review_results'].get('security', {})
+                    build_data = node_state['review_results'].get('build', {})
+                    bdl_data = node_state['review_results'].get('bdl', {})
+                    
+                    security_passed = security_data.get('passed', False) if isinstance(security_data, dict) else False
+                    build_passed = build_data.get('passed', False) if isinstance(build_data, dict) else False
+                    bdl_passed = bdl_data.get('passed', False) if isinstance(bdl_data, dict) else False
+                    
+                    print(f"  Security: {'PASSED' if security_passed else 'ISSUES FOUND'}")
+                    if not security_passed and isinstance(security_data, dict):
+                        issues = security_data.get('issues', [])
+                        if issues:
+                            print(f"    - {len(issues)} issue(s) found")
+                    
+                    print(f"  Build: {'PASSED' if build_passed else 'ISSUES FOUND'}")
+                    if not build_passed and isinstance(build_data, dict):
+                        issues = build_data.get('issues', [])
+                        if issues:
+                            print(f"    - {len(issues)} issue(s) found")
+                    
+                    print(f"  BDL: {'PASSED' if bdl_passed else 'ISSUES FOUND'}")
+                    if not bdl_passed and isinstance(bdl_data, dict):
+                        issues = bdl_data.get('issues', [])
+                        if issues:
+                            print(f"    - {len(issues)} issue(s) found")
                 elif node_name == "correct_code":
                     print(f"Code corrected (iteration {node_state.get('iteration_count', 0)})")
             

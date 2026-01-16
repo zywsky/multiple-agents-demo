@@ -1,7 +1,7 @@
 """
 Agents 模块
 """
-from .file_collection_agent import FileCollectionAgent
+# FileCollectionAgent 已移除，直接使用工具函数
 from .aem_analysis_agent import AEMAnalysisAgent
 from .bdl_selection_agent import BDLSelectionAgent
 from .code_writing_agent import CodeWritingAgent
@@ -9,7 +9,6 @@ from .review_agents import SecurityReviewAgent, BuildReviewAgent, BDLReviewAgent
 from .correct_agent import CorrectAgent
 
 __all__ = [
-    'FileCollectionAgent',
     'AEMAnalysisAgent',
     'BDLSelectionAgent',
     'CodeWritingAgent',

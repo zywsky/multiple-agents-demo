@@ -1,10 +1,12 @@
 """
 BDL 组件选择 Agent
 根据 AEM 组件分析结果选择对应的 BDL 组件
+支持结构化输出
 """
 from langchain_core.tools import tool
 from agents.base_agent import BaseAgent
 from tools import list_files, read_file
+from utils.schemas import BDLComponentSelection
 
 
 @tool
@@ -71,5 +73,6 @@ Provide:
             name="BDLSelectionAgent",
             system_prompt=system_prompt,
             tools=tools,
-            temperature=0.3
+            temperature=0.3,
+            output_schema=BDLComponentSelection  # 使用结构化输出
         )

@@ -1,10 +1,12 @@
 """
 代码编写 Agent
 根据 AEM 源代码和选定的 BDL 组件生成 React 代码
+支持结构化输出
 """
 from langchain_core.tools import tool
 from agents.base_agent import BaseAgent
 from tools import read_file, write_file, create_directory
+from utils.schemas import CodeGenerationResult
 
 
 @tool
@@ -68,5 +70,6 @@ Output the complete React component code."""
             name="CodeWritingAgent",
             system_prompt=system_prompt,
             tools=tools,
-            temperature=0.2
+            temperature=0.2,
+            output_schema=CodeGenerationResult  # 使用结构化输出
         )

@@ -1,10 +1,12 @@
 """
 AEM 分析 Agent
 负责分析 AEM 组件源代码
+支持结构化输出
 """
 from langchain_core.tools import tool
 from agents.base_agent import BaseAgent
 from tools import read_file, list_files
+from utils.schemas import FileAnalysisResult
 
 
 @tool
@@ -65,7 +67,8 @@ Output format should be structured and clear for downstream agents."""
             name="AEMAnalysisAgent",
             system_prompt=system_prompt,
             tools=tools,
-            temperature=0.2
+            temperature=0.2,
+            output_schema=FileAnalysisResult  # 使用结构化输出
         )
     
     def analyze_file(self, file_path: str) -> dict:
@@ -78,18 +81,38 @@ File path: {file_path}
 File content:
 {file_content}
 
-Provide a structured analysis with:
-1. File type
-2. Purpose and functionality
-3. Dependencies (components, services, resources referenced)
-4. Key features and behaviors
-5. Configuration details
-6. Any special considerations
-
-Format your response as a clear, structured summary."""
+Provide a structured analysis following the required format."""
         
-        result = self.run(prompt)
-        return {
-            "file_path": file_path,
-            "analysis": result
-        }
+        try:
+            result = self.run(prompt, return_structured=True)
+            
+            # 如果返回的是结构化对象，转换为字典
+            if isinstance(result, FileAnalysisResult):
+                return result.model_dump()
+            # 如果解析失败，返回原始结果
+            elif isinstance(result, str):
+                return {
+                    "file_path": file_path,
+                    "file_type": "unknown",
+                    "purpose": "Analysis failed",
+                    "dependencies": [],
+                    "key_features": [],
+                    "configuration": {},
+                    "analysis": result
+                }
+            else:
+                return {
+                    "file_path": file_path,
+                    "analysis": str(result)
+                }
+        except Exception as e:
+            # 如果完全失败，返回错误信息
+            return {
+                "file_path": file_path,
+                "file_type": "unknown",
+                "purpose": f"Error: {str(e)}",
+                "dependencies": [],
+                "key_features": [],
+                "configuration": {},
+                "analysis": f"Error analyzing file: {str(e)}"
+            }

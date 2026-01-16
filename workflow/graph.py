@@ -13,7 +13,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 from agents import (
-    FileCollectionAgent,
     AEMAnalysisAgent,
     BDLSelectionAgent,
     CodeWritingAgent,
@@ -22,6 +21,7 @@ from agents import (
     BDLReviewAgent,
     CorrectAgent
 )
+# FileCollectionAgent 已移除，直接使用工具函数
 
 
 class WorkflowState(TypedDict):
@@ -61,27 +61,25 @@ def create_workflow_graph():
     
     # 定义节点函数
     def collect_files(state: WorkflowState) -> WorkflowState:
-        """步骤1: 收集文件"""
+        """
+        步骤1: 收集文件
+        优化：直接使用工具函数，不需要 LLM Agent
+        """
         component_path = state["component_path"]
         logger.info(f"Collecting files from: {component_path}")
         
         try:
-            # 使用工具直接列出文件（更可靠）
+            # 直接使用工具函数（不需要 LLM）
             from tools import list_files
             files = list_files(component_path, recursive=True)
             
             if not files:
-                logger.warning(f"No files found in component path: {component_path}")
-                # 尝试使用 agent 作为备用
-                file_collection_agent = _get_agent(FileCollectionAgent, "file_collection")
-                prompt = f"List all files in the AEM component directory: {component_path}"
-                result = file_collection_agent.run(prompt)
-                files = [f.strip() for f in result.split("\n") if f.strip() and not f.startswith("Error")]
+                raise ValueError(
+                    f"No files found in component directory: {component_path}. "
+                    f"Please verify the resourceType is correct."
+                )
             
             logger.info(f"Found {len(files)} files")
-            
-            if len(files) == 0:
-                raise ValueError(f"No files found in component directory: {component_path}")
             
             return {
                 **state,
@@ -121,14 +119,26 @@ def create_workflow_graph():
                 logger.info(f"Analyzing file {i}/{len(files)}: {file_path}")
                 analysis = aem_analysis_agent.analyze_file(file_path)
                 
-                # 验证分析结果
-                if isinstance(analysis, dict) and "analysis" in analysis:
+                # 验证分析结果（现在应该是结构化的）
+                if isinstance(analysis, dict):
+                    # 确保包含必需的字段
+                    if "file_path" not in analysis:
+                        analysis["file_path"] = file_path
+                    if "analysis" not in analysis and "purpose" in analysis:
+                        # 从结构化数据构建分析文本
+                        analysis["analysis"] = (
+                            f"Type: {analysis.get('file_type', 'unknown')}\n"
+                            f"Purpose: {analysis.get('purpose', 'N/A')}\n"
+                            f"Features: {', '.join(analysis.get('key_features', []))}"
+                        )
                     file_analyses.append(analysis)
                     successful_analyses += 1
                 else:
-                    logger.warning(f"Unexpected analysis format for {file_path}")
+                    logger.warning(f"Unexpected analysis format for {file_path}: {type(analysis)}")
                     file_analyses.append({
                         "file_path": file_path,
+                        "file_type": "unknown",
+                        "purpose": "Analysis failed",
                         "analysis": str(analysis) if analysis else "No analysis available"
                     })
             except Exception as e:
@@ -176,20 +186,37 @@ Select BDL components and return their file paths."""
         
         try:
             bdl_selection_agent = _get_agent(BDLSelectionAgent, "bdl_selection")
-            result = bdl_selection_agent.run(prompt)
+            result = bdl_selection_agent.run(prompt, return_structured=True)
             
-            # 提取组件路径（更智能的解析）
-            selected_components = []
-            for line in result.split("\n"):
-                line = line.strip()
-                if not line or line.startswith("Error"):
-                    continue
-                # 检查是否包含路径特征或组件名称
-                if ("bdl" in line.lower() or "component" in line.lower() or 
-                    "/" in line or "\\" in line or line.endswith((".tsx", ".ts", ".jsx", ".js"))):
-                    selected_components.append(line)
+            # 处理结构化输出
+            if hasattr(result, 'selected_components'):
+                # 是 BDLComponentSelection 对象
+                selected_components = result.selected_components
+                logger.info(
+                    f"Selected {len(selected_components)} BDL components. "
+                    f"Reasoning: {len(result.reasoning)} mappings provided."
+                )
+            elif isinstance(result, dict) and "selected_components" in result:
+                # 是字典格式
+                selected_components = result["selected_components"]
+            else:
+                # 回退到智能文本解析
+                logger.warning("Failed to get structured output, using intelligent text parsing...")
+                from utils.parsers import parse_component_paths
+                selected_components = parse_component_paths(str(result), bdl_library_path)
+                
+                # 如果解析失败，使用简单方法
+                if not selected_components:
+                    for line in str(result).split("\n"):
+                        line = line.strip()
+                        if not line or line.startswith("Error"):
+                            continue
+                        if ("bdl" in line.lower() or "component" in line.lower() or 
+                            "/" in line or "\\" in line or line.endswith((".tsx", ".ts", ".jsx", ".js"))):
+                            selected_components.append(line)
             
-            logger.info(f"Selected {len(selected_components)} BDL components")
+            if not selected_components:
+                logger.warning("No BDL components selected. This may cause code generation issues.")
             
             return {
                 **state,
@@ -197,6 +224,7 @@ Select BDL components and return their file paths."""
             }
         except Exception as e:
             logger.error(f"Error selecting BDL components: {str(e)}")
+            # 返回空列表但继续流程（允许后续步骤处理）
             return {
                 **state,
                 "selected_bdl_components": []
@@ -286,52 +314,79 @@ Generate the complete React component code following BDL conventions."""
         build_review_agent = _get_agent(BuildReviewAgent, "build_review")
         bdl_review_agent = _get_agent(BDLReviewAgent, "bdl_review")
         
+        # 运行三个 review subagents（使用结构化输出）
+        security_result_obj = None
+        build_result_obj = None
+        bdl_result_obj = None
+        
         try:
             logger.info("Running security review...")
             security_prompt = f"Review this React code for security issues:\n\n{generated_code}"
-            security_result = security_review_agent.run(security_prompt)
+            security_result_obj = security_review_agent.run(security_prompt, return_structured=True)
         except Exception as e:
             logger.error(f"Error in security review: {str(e)}")
-            security_result = f"Error: {str(e)}"
+            security_result_obj = None
         
         try:
             logger.info("Running build review...")
             build_prompt = f"Review this React code for build errors:\n\nCode file: {code_file_path}\nWorking directory: {output_path}"
-            build_result = build_review_agent.run(build_prompt)
+            build_result_obj = build_review_agent.run(build_prompt, return_structured=True)
         except Exception as e:
             logger.error(f"Error in build review: {str(e)}")
-            build_result = f"Error: {str(e)}"
+            build_result_obj = None
         
         try:
             logger.info("Running BDL review...")
             bdl_prompt = f"Review this React code for BDL best practices:\n\n{generated_code}"
-            bdl_result = bdl_review_agent.run(bdl_prompt)
+            bdl_result_obj = bdl_review_agent.run(bdl_prompt, return_structured=True)
         except Exception as e:
             logger.error(f"Error in BDL review: {str(e)}")
-            bdl_result = f"Error: {str(e)}"
+            bdl_result_obj = None
         
-        # 汇总 review 结果
+        # 处理结构化结果
+        def extract_review_data(review_obj, default_text="Review failed"):
+            """从结构化 review 结果中提取数据"""
+            if hasattr(review_obj, 'passed'):
+                return {
+                    "passed": review_obj.passed,
+                    "issues": review_obj.issues if hasattr(review_obj, 'issues') else [],
+                    "recommendations": review_obj.recommendations if hasattr(review_obj, 'recommendations') else [],
+                    "severity": review_obj.severity if hasattr(review_obj, 'severity') else "unknown",
+                    "details": review_obj.details if hasattr(review_obj, 'details') else str(review_obj)
+                }
+            elif isinstance(review_obj, dict):
+                return review_obj
+            else:
+                return {
+                    "passed": False,
+                    "issues": [default_text],
+                    "recommendations": [],
+                    "severity": "high",
+                    "details": str(review_obj) if review_obj else default_text
+                }
+        
+        security_data = extract_review_data(security_result_obj, "Security review failed")
+        build_data = extract_review_data(build_result_obj, "Build review failed")
+        bdl_data = extract_review_data(bdl_result_obj, "BDL review failed")
+        
+        # 汇总 review 结果（保留原始对象和提取的数据）
         review_results = {
-            "security": security_result,
-            "build": build_result,
-            "bdl": bdl_result
+            "security": security_data,
+            "build": build_data,
+            "bdl": bdl_data,
+            "_raw": {
+                "security": security_result_obj,
+                "build": build_result_obj,
+                "bdl": bdl_result_obj
+            }
         }
         
-        # 判断是否通过（更智能的逻辑）
-        security_passed = any(keyword in security_result.lower() 
-                            for keyword in ["no issues", "passed", "no vulnerabilities", "secure", "safe"])
-        build_passed = any(keyword in build_result.lower() 
-                          for keyword in ["success", "no errors", "build successful", "compiles", "valid"])
-        bdl_passed = any(keyword in bdl_result.lower() 
-                        for keyword in ["compliant", "correct", "follows", "valid", "proper"])
+        # 判断是否通过（使用结构化数据）
+        security_passed = security_data.get("passed", False) and security_data.get("severity") not in ["critical", "high"]
+        build_passed = build_data.get("passed", False) and build_data.get("severity") not in ["critical", "high"]
+        bdl_passed = bdl_data.get("passed", False) and bdl_data.get("severity") not in ["critical", "high"]
         
-        # 如果任何 review 有严重错误，则不通过
-        has_critical_errors = any(
-            "error" in result.lower() and "no errors" not in result.lower()
-            for result in [security_result, build_result, bdl_result]
-        )
-        
-        review_passed = security_passed and build_passed and bdl_passed and not has_critical_errors
+        review_passed = security_passed and build_passed and bdl_passed
         
         logger.info(f"Review completed. Passed: {review_passed}")
         
@@ -353,9 +408,15 @@ Original Code:
 {generated_code}
 
 Review Results:
-Security: {review_results.get('security', '')}
-Build: {review_results.get('build', '')}
-BDL: {review_results.get('bdl', '')}
+Security: {review_results.get('security', {}).get('details', 'N/A')}
+  Issues: {len(review_results.get('security', {}).get('issues', []))}
+  Passed: {review_results.get('security', {}).get('passed', False)}
+Build: {review_results.get('build', {}).get('details', 'N/A')}
+  Issues: {len(review_results.get('build', {}).get('issues', []))}
+  Passed: {review_results.get('build', {}).get('passed', False)}
+BDL: {review_results.get('bdl', {}).get('details', 'N/A')}
+  Issues: {len(review_results.get('bdl', {}).get('issues', []))}
+  Passed: {review_results.get('bdl', {}).get('passed', False)}
 
 Fix all issues and provide the corrected code."""
         
