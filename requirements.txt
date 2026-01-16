@@ -1,0 +1,22 @@
+# Core dependencies - LangGraph & LangChain
+langgraph>=1.0.0,<2.0.0
+langchain>=1.0.0,<2.0.0
+langchain-openai>=1.0.0,<2.0.0
+langchain-core>=1.0.0,<2.0.0
+langchain-community>=0.3.0  # 社区集成
+
+# API Framework (可选，用于未来可能的 API 服务)
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+
+# Configuration & Validation
+pydantic>=2.10.0
+pydantic-settings>=2.5.0  # 配置管理
+
+# Database/Checkpointing
+langgraph-checkpoint>=2.0.0
+langgraph-checkpoint-postgres>=2.0.0
+
+# Utilities
+python-dotenv>=1.0.0
+typing-extensions>=4.8.0
