@@ -59,21 +59,26 @@ def read_file(file_path: str) -> str:
 def write_file(file_path: str, content: str) -> str:
     """
     写入内容到文件（如果文件不存在则创建）
+    支持跨平台路径
     
     Args:
-        file_path: 文件路径
+        file_path: 文件路径（支持相对路径和绝对路径）
         content: 要写入的内容
     
     Returns:
         操作结果消息
     """
     try:
-        # 确保目录存在
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        # 使用 pathlib 处理路径（跨平台）
+        path_obj = Path(file_path)
         
-        with open(file_path, 'w', encoding='utf-8') as f:
+        # 确保目录存在（跨平台）
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+        
+        # 写入文件
+        with open(path_obj, 'w', encoding='utf-8') as f:
             f.write(content)
-        return f"Successfully wrote to {file_path}"
+        return f"Successfully wrote to {str(path_obj)}"
     except Exception as e:
         return f"Error writing file: {str(e)}"
 

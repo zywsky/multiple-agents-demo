@@ -33,14 +33,14 @@ Your task is to fix issues identified by review agents.
 
 You will receive:
 1. The original code
-2. Review results from Security, Build, and MUI review agents
+2. Review results from Security, Build, and BDL review agents
 3. Specific issues and recommendations
 
 You should:
 1. Address all critical and high-severity issues first
 2. Fix build errors and compilation issues
 3. Correct security vulnerabilities
-4. Fix MUI usage and best practice violations
+4. Fix BDL usage and best practice violations
 5. Maintain the original functionality
 6. Ensure code quality and readability
 

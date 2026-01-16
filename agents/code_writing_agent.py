@@ -1,6 +1,6 @@
 """
 代码编写 Agent
-根据 AEM 源代码和选定的 MUI 组件生成 React 代码
+根据 AEM 源代码和选定的 BDL 组件生成 React 代码
 """
 from langchain_core.tools import tool
 from agents.base_agent import BaseAgent
@@ -35,31 +35,32 @@ class CodeWritingAgent(BaseAgent):
             create_component_directory
         ]
         
-        system_prompt = """You are an expert React and MUI developer.
-Your task is to convert AEM HTL components to React components using MUI.
+        system_prompt = """You are an expert React and BDL developer.
+Your task is to convert AEM HTL components to React components using BDL (company's internal component library).
 
 Given:
 1. AEM component source code (HTL templates, dialogs, scripts)
-2. Selected MUI components and their source code
+2. Selected BDL components and their source code
 3. Component analysis results
 
 You should:
 1. Create a React functional component that replicates the AEM component functionality
-2. Use the selected MUI components appropriately
+2. Use the selected BDL components appropriately
 3. Follow React best practices (hooks, props, state management)
-4. Follow MUI best practices (theme, styling, component composition)
+4. Follow BDL best practices (theme, styling, component composition)
 5. Maintain the same UI/UX behavior as the original AEM component
 6. Handle props, state, and events appropriately
 7. Include proper TypeScript types if applicable
-8. Add necessary imports
+8. Add necessary imports from BDL library
 
 Code requirements:
 - Use functional components with hooks
 - Proper prop types/interfaces
 - Clean, readable code
-- Follow MUI component API correctly
+- Follow BDL component API correctly
 - Handle edge cases
 - Include comments for complex logic
+- Use BDL-specific patterns and conventions
 
 Output the complete React component code."""
         

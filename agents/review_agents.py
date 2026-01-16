@@ -1,5 +1,5 @@
 """
-Review Agents - 包含 Security, Build, 和 MUI 三个子 agent
+Review Agents - 包含 Security, Build, 和 BDL 三个子 agent
 """
 from langchain_core.tools import tool
 from agents.base_agent import BaseAgent
@@ -101,35 +101,36 @@ Return a structured review with:
         )
 
 
-class MUIReviewAgent(BaseAgent):
-    """MUI 规范审查 Agent"""
+class BDLReviewAgent(BaseAgent):
+    """BDL 规范审查 Agent"""
     
     def __init__(self):
         tools = [read_code_file, check_file_exists_tool]
         
-        system_prompt = """You are a MUI (Material-UI) expert.
-Your task is to review React code to ensure it follows MUI best practices and conventions.
+        system_prompt = """You are a BDL (company's internal component library) expert.
+Your task is to review React code to ensure it follows BDL best practices and conventions.
 
 Check for:
-1. Correct MUI component usage (props, API)
+1. Correct BDL component usage (props, API)
 2. Proper theme integration
 3. Correct styling approach (sx prop, styled components, makeStyles)
 4. Component composition best practices
 5. Accessibility (a11y) compliance
 6. Responsive design implementation
-7. MUI component imports are correct
+7. BDL component imports are correct
 8. Theme customization is appropriate
 9. Component variants and sizes are used correctly
 10. Icons are imported from correct packages
+11. BDL-specific patterns and conventions are followed
 
 Return a structured review with:
-- MUI compliance issues (if any)
+- BDL compliance issues (if any)
 - Best practice violations
 - Recommendations for improvements
 - Specific code examples for fixes"""
         
         super().__init__(
-            name="MUIReviewAgent",
+            name="BDLReviewAgent",
             system_prompt=system_prompt,
             tools=tools,
             temperature=0.1
