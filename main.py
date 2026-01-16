@@ -49,7 +49,7 @@ def build_component_path(aem_repo_path: str, resource_type: str) -> str:
     
     Args:
         aem_repo_path: AEM repository 根路径
-        resource_type: 相对于 AEM repo 的 resourceType（如 "example/components/button"）
+        resource_type: 相对于 AEM repo 的 resourceType（如 "example/components/button" 或 "example.components.button"）
     
     Returns:
         完整的组件路径
@@ -59,13 +59,20 @@ def build_component_path(aem_repo_path: str, resource_type: str) -> str:
     
     # 清理 resourceType（移除前导/尾随斜杠，处理路径分隔符）
     resource_type = resource_type.strip().strip("/").strip("\\")
+    
     # 将 resourceType 中的点替换为路径分隔符（AEM resourceType 使用点分隔）
-    resource_type = resource_type.replace(".", os.sep)
+    # 但保留已有的路径分隔符
+    if "/" in resource_type or "\\" in resource_type:
+        # 已经是路径格式，只规范化分隔符
+        resource_type = resource_type.replace("\\", os.sep).replace("/", os.sep)
+    else:
+        # 是点分隔格式，转换为路径
+        resource_type = resource_type.replace(".", os.sep)
     
     # 构建完整路径
     component_path = Path(repo_path) / resource_type
     
-    return str(component_path)
+    return str(component_path.resolve())
 
 
 def main():
@@ -187,10 +194,23 @@ def main():
             if final_node_state.get("code_file_path"):
                 print(f"\nGenerated component: {final_node_state['code_file_path']}")
     
+    except KeyboardInterrupt:
+        print("\n\nWorkflow interrupted by user.")
+        sys.exit(130)
+    except ValueError as e:
+        print(f"\nValidation Error: {str(e)}")
+        print("\nPlease check:")
+        print("  1. ResourceType is correct")
+        print("  2. Component exists in AEM repository")
+        print("  3. Paths in .env are correct")
+        sys.exit(1)
     except Exception as e:
         print(f"\nError during workflow execution: {str(e)}")
         import traceback
         traceback.print_exc()
+        print("\nFor help, check:")
+        print("  - CONFIGURATION.md for configuration issues")
+        print("  - CODE_REVIEW.md for troubleshooting")
         sys.exit(1)
 
 

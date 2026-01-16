@@ -1,19 +1,21 @@
-# AEM to React Component Converter
+# AEM to React Component Converter (BDL)
 
-使用 LangChain 和 LangGraph 构建的工作流，将 AEM (Adobe Experience Manager) HTL 组件转换为基于 MUI 的 React 组件。
+使用 LangChain 和 LangGraph 构建的工作流，将 AEM (Adobe Experience Manager) HTL 组件转换为基于 BDL（公司内部组件库）的 React 组件。
 
 ## 功能特性
 
 - **文件收集**: 自动收集 AEM 组件目录下的所有文件
 - **AEM 分析**: 逐个文件分析 AEM 组件源代码，避免 token 限制
-- **MUI 组件选择**: 智能选择匹配的 MUI 组件
+- **BDL 组件选择**: 智能选择匹配的 BDL 组件
 - **代码生成**: 生成等价的 React 组件代码
 - **多维度审查**: 
   - 安全审查 (Security Review)
   - 构建审查 (Build Review)
-  - MUI 规范审查 (MUI Review)
+  - BDL 规范审查 (BDL Review)
 - **自动修正**: 根据审查结果自动修正代码
 - **循环优化**: Review -> Correct -> Review 循环，直到通过或达到最大迭代次数
+- **配置管理**: 通过 .env 文件管理路径配置
+- **跨平台支持**: 支持 Windows、Linux、macOS
 
 ## 项目结构
 
@@ -23,7 +25,7 @@ multiple-agents/
 │   ├── base_agent.py
 │   ├── file_collection_agent.py
 │   ├── aem_analysis_agent.py
-│   ├── mui_selection_agent.py
+│   ├── bdl_selection_agent.py
 │   ├── code_writing_agent.py
 │   ├── review_agents.py
 │   └── correct_agent.py
@@ -50,8 +52,13 @@ pip install -r requirements.txt
 3. 配置环境变量:
 ```bash
 cp .env.example .env
-# 编辑 .env 文件，填入你的 OPENAI_API_KEY
+# 编辑 .env 文件，填入:
+# - OPENAI_API_KEY: 你的 OpenAI API key
+# - AEM_REPO_PATH: AEM repository 根路径（绝对路径）
+# - BDL_LIBRARY_PATH: BDL library 根路径（绝对路径）
 ```
+
+详细配置说明请查看 [CONFIGURATION.md](CONFIGURATION.md)
 
 ## 使用方法
 
@@ -61,10 +68,11 @@ python main.py
 ```
 
 程序会提示你输入:
-1. AEM 组件路径 (例如: `/path/to/aem/components/my-component`)
-2. MUI 组件库路径 (例如: `/path/to/mui/packages`)
-3. 输出路径 (默认: `./output`)
-4. 最大审查迭代次数 (默认: 5)
+1. **resourceType**: AEM 组件的 resourceType（相对于 AEM repo 的相对路径）
+   - 支持点分隔格式: `example.components.button`
+   - 支持路径格式: `example/components/button`
+2. **输出路径** (默认: `./output`)
+3. **最大审查迭代次数** (默认: 5)
 
 ## 工作流步骤
 
@@ -76,20 +84,20 @@ python main.py
    - 识别文件类型、功能、依赖关系
    - 生成结构化分析摘要
 
-3. **MUI 组件选择** (MUI Selection Agent)
+3. **BDL 组件选择** (BDL Selection Agent)
    - 根据 AEM 组件分析结果
-   - 在 MUI 组件库中搜索匹配的组件
-   - 返回选定的 MUI 组件文件路径
+   - 在 BDL 组件库中搜索匹配的组件
+   - 返回选定的 BDL 组件文件路径
 
 4. **代码生成** (Code Writing Agent)
-   - 基于 AEM 源代码和选定的 MUI 组件
+   - 基于 AEM 源代码和选定的 BDL 组件
    - 生成等价的 React 组件代码
-   - 使用 MUI 组件实现相同功能
+   - 使用 BDL 组件实现相同功能
 
 5. **代码审查** (Review Agents - Subagents)
    - **Security Agent**: 检查安全问题（XSS、注入攻击等）
    - **Build Agent**: 检查构建错误和代码质量问题
-   - **MUI Agent**: 检查 MUI 使用规范和最佳实践
+   - **BDL Agent**: 检查 BDL 使用规范和最佳实践
    - 汇总所有审查结果
 
 6. **代码修正** (Correct Agent)
@@ -125,11 +133,13 @@ python main.py
 
 2. **API Key**: 需要有效的 OpenAI API Key
 
-3. **文件路径**: 确保提供的 AEM 组件路径和 MUI 库路径正确
+3. **配置路径**: 确保 `.env` 文件中的 `AEM_REPO_PATH` 和 `BDL_LIBRARY_PATH` 正确
 
-4. **构建环境**: Build Review Agent 会执行 `npm run build`，确保目标目录有 package.json 和必要的依赖
+4. **resourceType**: 确保输入的 resourceType 对应的组件在 AEM repository 中存在
 
-5. **迭代限制**: 默认最大迭代次数为 5，可以在运行时调整
+5. **构建环境**: Build Review Agent 会执行 `npm run build`，确保目标目录有 package.json 和必要的依赖
+
+6. **迭代限制**: 默认最大迭代次数为 5，可以在运行时调整
 
 ## 依赖版本
 
@@ -153,9 +163,17 @@ python main.py
 你可以根据需要扩展:
 - 添加更多的审查维度
 - 支持更多的 AEM 组件类型
-- 改进 MUI 组件选择逻辑
+- 改进 BDL 组件选择逻辑
 - 添加代码格式化工具
 - 支持 TypeScript
+
+## 相关文档
+
+- [CONFIGURATION.md](CONFIGURATION.md) - 详细配置说明
+- [CODE_REVIEW.md](CODE_REVIEW.md) - 代码审查和健壮性检查
+- [CHANGELOG.md](CHANGELOG.md) - 更新日志
+- [SUMMARY.md](SUMMARY.md) - 项目更新总结
+- [CROSS_PLATFORM.md](CROSS_PLATFORM.md) - 跨平台支持说明
 
 ## 许可证
 

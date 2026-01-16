@@ -93,18 +93,44 @@ def create_workflow_graph():
     
     def analyze_aem_files(state: WorkflowState) -> WorkflowState:
         """步骤2: 分析 AEM 文件（逐个处理）"""
-        files = state["files"]
+        files = state.get("files", [])
         file_analyses = []
+        
+        if not files:
+            logger.error("No files to analyze")
+            raise ValueError("Cannot analyze files: no files collected")
         
         logger.info(f"Analyzing {len(files)} files...")
         
         # 逐个文件分析，避免 token 超限
         aem_analysis_agent = _get_agent(AEMAnalysisAgent, "aem_analysis")
+        successful_analyses = 0
+        
         for i, file_path in enumerate(files, 1):
             try:
+                # 验证文件路径
+                from tools import file_exists
+                if not file_exists(file_path):
+                    logger.warning(f"File does not exist: {file_path}")
+                    file_analyses.append({
+                        "file_path": file_path,
+                        "analysis": "Error: File not found"
+                    })
+                    continue
+                
                 logger.info(f"Analyzing file {i}/{len(files)}: {file_path}")
                 analysis = aem_analysis_agent.analyze_file(file_path)
-                file_analyses.append(analysis)
+                
+                # 验证分析结果
+                if isinstance(analysis, dict) and "analysis" in analysis:
+                    file_analyses.append(analysis)
+                    successful_analyses += 1
+                else:
+                    logger.warning(f"Unexpected analysis format for {file_path}")
+                    file_analyses.append({
+                        "file_path": file_path,
+                        "analysis": str(analysis) if analysis else "No analysis available"
+                    })
             except Exception as e:
                 logger.error(f"Error analyzing file {file_path}: {str(e)}")
                 file_analyses.append({
@@ -112,7 +138,10 @@ def create_workflow_graph():
                     "analysis": f"Error: {str(e)}"
                 })
         
-        logger.info(f"Completed analysis of {len(file_analyses)} files")
+        logger.info(f"Completed analysis: {successful_analyses}/{len(files)} successful")
+        
+        if successful_analyses == 0:
+            raise ValueError("All file analyses failed")
         
         return {
             **state,
@@ -349,10 +378,13 @@ Fix all issues and provide the corrected code."""
         max_iterations = state.get("max_iterations", 5)
         
         if review_passed:
+            logger.info("All reviews passed. Ending workflow.")
             return "end"
         elif iteration_count >= max_iterations:
+            logger.warning(f"Reached max iterations ({max_iterations}). Ending workflow.")
             return "end"  # 达到最大迭代次数，结束
         else:
+            logger.info(f"Reviews not passed. Continuing to correction (iteration {iteration_count + 1}/{max_iterations}).")
             return "correct"
     
     # 创建图
