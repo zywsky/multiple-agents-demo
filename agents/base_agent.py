@@ -104,31 +104,105 @@ class BaseAgent:
         return str(result) if result else ""
     
     def _parse_structured_output(self, content: str) -> Optional[BaseModel]:
-        """解析结构化输出"""
+        """解析结构化输出（支持多种格式：JSON、YAML、带注释的JSON）"""
         if not self.output_parser or not self.output_schema:
             return None
         
+        import json
+        import re
+        
+        # 方法1: 直接解析（标准JSON）
         try:
             parsed = self.output_parser.parse(content)
             return parsed
-        except ValidationError as e:
-            logger.warning(f"Failed to parse structured output for {self.name}: {str(e)}")
-            logger.debug(f"Raw content: {content[:500]}...")
-            # 尝试从文本中提取 JSON
-            import json
-            import re
-            # 查找 JSON 块
-            json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        except ValidationError:
+            pass
+        except Exception:
+            pass
+        
+        # 方法2: 提取JSON代码块
+        json_block_match = re.search(r'```json\s*\n(.*?)\n```', content, re.DOTALL)
+        if json_block_match:
+            try:
+                json_str = json_block_match.group(1)
+                # 移除单行注释
+                json_str = re.sub(r'//.*?$', '', json_str, flags=re.MULTILINE)
+                # 移除多行注释
+                json_str = re.sub(r'/\*.*?\*/', '', json_str, flags=re.DOTALL)
+                json_data = json.loads(json_str)
+                return self.output_schema(**json_data)
+            except (json.JSONDecodeError, ValidationError) as e:
+                logger.debug(f"Failed to parse JSON block: {str(e)}")
+        
+        # 方法3: 提取YAML并转换
+        yaml_block_match = re.search(r'```yaml\s*\n(.*?)\n```', content, re.DOTALL)
+        if yaml_block_match:
+            try:
+                import yaml
+                yaml_str = yaml_block_match.group(1)
+                json_data = yaml.safe_load(yaml_str)
+                if json_data:
+                    return self.output_schema(**json_data)
+            except ImportError:
+                logger.debug("PyYAML not installed, skipping YAML parsing")
+            except Exception as e:
+                logger.debug(f"Failed to parse YAML block: {str(e)}")
+        
+        # 方法4: 查找YAML格式（无代码块标记）
+        yaml_pattern = r'^-\s+(?:passed|issues|recommendations|severity|details|vulnerabilities|risk_level):'
+        if re.search(yaml_pattern, content, re.MULTILINE):
+            try:
+                import yaml
+                # 尝试解析整个内容为YAML
+                json_data = yaml.safe_load(content)
+                if json_data and isinstance(json_data, dict):
+                    return self.output_schema(**json_data)
+            except ImportError:
+                pass
+            except Exception:
+                pass
+        
+        # 方法5: 查找JSON对象（即使有注释或格式问题）
+        # 尝试找到最完整的JSON对象
+        json_obj_patterns = [
+            r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}',  # 简单匹配
+            r'\{.*?"passed".*?\}',  # 包含passed字段
+            r'\{.*?"issues".*?\}',  # 包含issues字段
+        ]
+        
+        for pattern in json_obj_patterns:
+            json_match = re.search(pattern, content, re.DOTALL)
             if json_match:
                 try:
-                    json_data = json.loads(json_match.group())
+                    json_str = json_match.group()
+                    # 移除注释
+                    json_str = re.sub(r'//.*?$', '', json_str, flags=re.MULTILINE)
+                    json_str = re.sub(r'/\*.*?\*/', '', json_str, flags=re.DOTALL)
+                    # 尝试解析
+                    json_data = json.loads(json_str)
                     return self.output_schema(**json_data)
                 except (json.JSONDecodeError, ValidationError):
-                    pass
-            return None
-        except Exception as e:
-            logger.error(f"Unexpected error parsing output for {self.name}: {str(e)}")
-            return None
+                    continue
+        
+        # 方法6: 处理列表格式（某些Agent可能返回列表）
+        list_match = re.search(r'\[.*?\]', content, re.DOTALL)
+        if list_match:
+            try:
+                list_str = list_match.group()
+                list_data = json.loads(list_str)
+                # 如果schema期望对象但得到列表，尝试转换
+                if isinstance(list_data, list) and len(list_data) > 0:
+                    # 检查是否是组件路径列表（BDLSelectionAgent的情况）
+                    if all(isinstance(item, str) and ('/' in item or '\\' in item) for item in list_data):
+                        # 转换为BDLComponentSelection格式
+                        return self.output_schema(selected_components=list_data, reasoning="", component_mapping={})
+            except (json.JSONDecodeError, ValidationError):
+                pass
+        
+        # 所有方法都失败
+        logger.warning(f"Failed to parse structured output for {self.name} after trying all methods")
+        logger.debug(f"Raw content preview: {content[:500]}...")
+        return None
     
     def run(
         self, 

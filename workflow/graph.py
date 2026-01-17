@@ -1000,6 +1000,37 @@ CRITICAL: Output ONLY the complete React component code. The code must:
         
         logger.info(f"Reviewing code (iteration {iteration})...")
         
+        # 检查代码是否为空或太短
+        if not generated_code or len(generated_code.strip()) < 50:
+            logger.warning(f"Code is empty or too short ({len(generated_code) if generated_code else 0} chars), skipping review")
+            return {
+                **state,
+                "review_results": {
+                    "security": {
+                        "passed": False,
+                        "issues": ["Code is empty or too short to review"],
+                        "recommendations": ["Generate valid code first"],
+                        "severity": "critical",
+                        "details": "The generated code is empty or too short to perform a meaningful review."
+                    },
+                    "build": {
+                        "passed": False,
+                        "issues": ["Code is empty or too short"],
+                        "recommendations": ["Generate valid code first"],
+                        "severity": "critical",
+                        "details": "Cannot build empty code."
+                    },
+                    "bdl": {
+                        "passed": False,
+                        "issues": ["Code is empty or too short"],
+                        "recommendations": ["Generate valid code first"],
+                        "severity": "critical",
+                        "details": "Cannot review BDL compliance for empty code."
+                    }
+                },
+                "review_passed": False
+            }
+        
         # 构建迭代上下文
         iteration_context = ""
         if iteration == 0:
@@ -1303,10 +1334,22 @@ CRITICAL OUTPUT REQUIREMENTS:
             correct_agent = _get_agent(CorrectAgent, "correct")
             result = correct_agent.run(prompt)
             
-            # 提取修正后的代码（使用改进的提取方法）
+            # 提取修正后的代码（使用改进的提取方法，带回退机制）
             from utils.code_validator import improve_code_extraction, validate_react_code
             
-            corrected_code = improve_code_extraction(str(result))
+            # 保存原始代码作为回退
+            original_code = state.get("generated_code", "")
+            
+            # 提取代码，如果失败则使用原始代码
+            corrected_code = improve_code_extraction(str(result), fallback_code=original_code)
+            
+            # 验证提取的代码
+            if not corrected_code or len(corrected_code) < 50:
+                logger.error(
+                    f"Code extraction failed completely (extracted {len(corrected_code) if corrected_code else 0} chars). "
+                    f"Keeping original code ({len(original_code)} chars)"
+                )
+                corrected_code = original_code
             
             # 验证修正后的代码
             is_valid, warnings, errors = validate_react_code(corrected_code)
