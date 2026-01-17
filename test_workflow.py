@@ -46,9 +46,21 @@ def test_component(resource_type: str, component_name: str):
         logger.warning("Will continue without BDL library...")
     
     # 构建组件路径
-    component_path = os.path.join(aem_repo_path, resource_type.replace(".", "/"))
+    # resourceType 格式可能是 "example/components/button" 或 "example.components.button"
+    # 但实际目录名是 "example-button" 和 "example-card"
+    # 需要将 resourceType 转换为实际的目录名
+    resource_type_parts = resource_type.replace(".", "/").split("/")
+    # 取最后一部分作为组件名，并添加 example- 前缀（如果是 example 开头的）
+    if len(resource_type_parts) >= 2 and resource_type_parts[0] == "example":
+        component_dir_name = f"example-{resource_type_parts[-1]}"
+    else:
+        # 如果不是 example 开头，尝试直接使用最后一部分
+        component_dir_name = resource_type_parts[-1]
+    
+    component_path = os.path.join(aem_repo_path, component_dir_name)
     if not os.path.exists(component_path):
         logger.error(f"Component path not found: {component_path}")
+        logger.error(f"Expected resourceType format: example/components/button -> example-button")
         return False
     
     logger.info(f"AEM Repo Path: {aem_repo_path}")
@@ -87,7 +99,9 @@ def test_component(resource_type: str, component_name: str):
         
         # 运行工作流
         logger.info("Starting workflow...\n")
-        final_state = graph.invoke(initial_state)
+        # 添加 checkpointer 配置
+        config = {"configurable": {"thread_id": f"test_{component_name.replace(' ', '_')}"}}
+        final_state = graph.invoke(initial_state, config=config)
         
         # 检查结果
         if final_state.get("review_passed"):
