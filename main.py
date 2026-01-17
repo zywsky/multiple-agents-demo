@@ -19,7 +19,7 @@ def load_config() -> dict:
     
     # 检查必需的配置项
     required_configs = {
-        "OPENAI_API_KEY": "OpenAI API key",
+        # "OPENAI_API_KEY": "OpenAI API key",
         "AEM_REPO_PATH": "AEM repository path",
         "BDL_LIBRARY_PATH": "BDL library path"
     }

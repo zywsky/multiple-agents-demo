@@ -460,8 +460,12 @@ Select BDL components and return their file paths with reasoning."""
         dependency_analyses = state.get("dependency_analyses", {})
         dependency_tree = state.get("dependency_tree", {})
         
+        # 提取模板片段和 i18n 信息
+        template_summary = ""
+        i18n_summary = ""
+        
         if htl_analyses and component_path and aem_repo_path:
-            # 1. 处理当前组件的 CSS
+            # 1. 处理当前组件的 CSS、模板片段和 i18n
             first_htl = htl_analyses[0]
             htl_file_path = first_htl.get('file_path', '')
             if htl_file_path:
@@ -472,7 +476,40 @@ Select BDL components and return their file paths with reasoning."""
                         build_dependency_css_summary,
                         merge_css_summaries
                     )
+                    from utils.template_analyzer import (
+                        extract_template_calls,
+                        find_template_files,
+                        analyze_template_file,
+                        build_template_summary
+                    )
+                    from utils.i18n_analyzer import (
+                        extract_i18n_keys_from_htl,
+                        find_i18n_dictionary_files,
+                        parse_properties_file,
+                        build_i18n_summary
+                    )
                     htl_content = read_file(htl_file_path)
+                    
+                    # 提取和分析模板片段
+                    template_calls = extract_template_calls(htl_content)
+                    if template_calls:
+                        template_files = find_template_files(template_calls, aem_repo_path)
+                        template_analyses = {}
+                        for template_path, file_path in template_files.items():
+                            if file_path:
+                                template_analyses[file_path] = analyze_template_file(file_path)
+                        template_summary = build_template_summary(template_calls, template_files, template_analyses)
+                        logger.info(f"Found {len(template_calls)} template calls, {len([f for f in template_files.values() if f])} template files found")
+                    
+                    # 提取和分析 i18n
+                    i18n_keys = extract_i18n_keys_from_htl(htl_content)
+                    if i18n_keys:
+                        dictionary_files = find_i18n_dictionary_files(component_path, aem_repo_path)
+                        translations = {}
+                        for dict_file in dictionary_files:
+                            translations[dict_file] = parse_properties_file(dict_file)
+                        i18n_summary = build_i18n_summary(i18n_keys, dictionary_files, translations)
+                        logger.info(f"Found {len(i18n_keys)} i18n keys, {len(dictionary_files)} dictionary files")
                     current_css_summary = build_css_summary(
                         component_path,
                         htl_content,
@@ -686,6 +723,8 @@ Component Name: {component_name}
 {dialog_summary}
 {js_summary}
 {java_summary}
+{template_summary}
+{i18n_summary}
 
 === SELECTED BDL COMPONENTS ===
 {bdl_components_info}
@@ -827,10 +866,30 @@ IMPORTANT: When converting to React:
    - Convert each dependency component to a React component import
    - Ensure dependency components are properly integrated with correct props
 
-9. Styling:
-   - Note: CSS will be handled separately later
-   - Use BDL's styling approach (sx prop, styled-components, or CSS modules)
-   - Preserve responsive behavior if mentioned in HTL/JS
+9. Template Snippets (from data-sly-call):
+   - template.placeholder: AEM-specific for edit mode - Remove in React or convert to empty state handling
+   - template.styles: Convert to React import or CSS-in-JS
+   - template.scripts: Convert to React import
+   - Other template calls: Convert to React functions or components based on template structure
+   - If template file is found, analyze its structure and convert accordingly
+
+10. i18n Internationalization:
+    - Convert AEM i18n to React i18n library (e.g., react-i18next)
+    - Use useTranslation hook: const {{ t }} = useTranslation()
+    - Map translation keys: ${{'Button Text' @ i18n}} → t('Button Text') or t('button.text')
+    - If dictionary files are found, use them to create React i18n translation files
+    - Example: <span>{{t('button.text')}}</span>
+
+11. Service Dependencies (from Java Sling Model):
+    - Service injections (@OSGiService, @Inject) → React API calls
+    - Convert service method calls to API endpoints
+    - Use useEffect + fetch/axios for data fetching
+    - Handle loading and error states appropriately
+
+12. Styling:
+    - Note: CSS will be handled separately later
+    - Use BDL's styling approach (sx prop, styled-components, or CSS modules)
+    - Preserve responsive behavior if mentioned in HTL/JS
 
 === CONVERSION EXAMPLE (Reference) ===
 

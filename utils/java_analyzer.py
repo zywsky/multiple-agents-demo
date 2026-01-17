@@ -96,6 +96,9 @@ def parse_java_file(java_file_path: str) -> Dict[str, Any]:
     # 提取 getter 方法（用于推断字段类型）
     result['getter_methods'] = _extract_getter_methods(content)
     
+    # 提取服务依赖
+    result['service_dependencies'] = _extract_service_dependencies(result['fields'], result['methods'])
+    
     return result
 
 
@@ -197,8 +200,12 @@ def _extract_fields(content: str) -> List[Dict[str, Any]]:
             })
             
             # 检查是否是注入注解
-            if ann_name in ['ValueMapValue', 'Inject', 'OSGiService', 'RequestAttribute']:
+            if ann_name in ['ValueMapValue', 'Inject', 'OSGiService', 'RequestAttribute', 'SlingObject']:
                 field_info['injection_type'] = ann_name
+                
+                # 如果是服务注入，标记为服务依赖
+                if ann_name in ['OSGiService', 'Inject']:
+                    field_info['is_service'] = True
             
             # 检查是否必填
             if ann_name in ['Required', 'NotNull', 'NotEmpty']:
@@ -379,6 +386,22 @@ def _build_data_structure(fields: List[Dict[str, Any]], methods: List[Dict[str, 
             structure['optional_fields'].append(field_name)
     
     return structure
+
+
+def _extract_service_dependencies(fields: List[Dict[str, Any]], methods: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """提取服务依赖（@OSGiService, @Inject 等）"""
+    service_deps = []
+    
+    for field in fields:
+        if field.get('is_service'):
+            service_deps.append({
+                'field_name': field['name'],
+                'field_type': field['type'],
+                'injection_type': field.get('injection_type', ''),
+                'description': f"Service dependency: {field['type']} injected via {field.get('injection_type', 'Inject')}"
+            })
+    
+    return service_deps
 
 
 def _map_java_to_typescript_type(java_type: str) -> str:

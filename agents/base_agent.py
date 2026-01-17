@@ -5,6 +5,7 @@
 """
 from typing import List, Dict, Any, Optional, TypeVar, Generic, Type
 from langchain_openai import ChatOpenAI
+from langchain_community.llms import Ollama
 from langchain_core.tools import tool
 from langchain.agents import create_agent
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
@@ -53,15 +54,21 @@ class BaseAgent:
     
     def _initialize_model(self):
         """初始化模型（延迟初始化，避免在没有 API key 时立即失败）"""
-        api_key = os.getenv("OPENAI_API_KEY")
-        if not api_key:
-            raise ValueError(
-                "OPENAI_API_KEY not found. Please set it in .env file or environment variables."
-            )
-        self.model = ChatOpenAI(
-            model=self.model_name,
-            temperature=self.temperature,
-            api_key=api_key
+        # api_key = os.getenv("OPENAI_API_KEY")
+        # if not api_key:
+        #     raise ValueError(
+        #         "OPENAI_API_KEY not found. Please set it in .env file or environment variables."
+        #     )
+        # self.model = ChatOpenAI(
+        #     model=self.model_name,
+        #     temperature=self.temperature,
+        #     api_key=api_key
+        # )
+        self.model = Ollama(
+            model="llama3:latest",  # 与你启动的模型名称一致
+            base_url="http://localhost:11434",  # Ollama 默认地址
+            temperature=0.1,
+            # 其他参数...
         )
     
     def _setup_output_parser(self):

@@ -1,143 +1,181 @@
+#!/usr/bin/env python3
 """
-测试工作流脚本
-用于验证工作流是否能正常创建和运行（不需要实际的 API key 和路径）
+快速测试工作流脚本
+用于测试 AEM 组件转换工作流
 """
 import os
 import sys
-from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv()
+# 添加项目根目录到路径
+project_root = Path(__file__).parent
+sys.path.insert(0, str(project_root))
+
+from workflow.graph import create_workflow_graph
+from langgraph.graph import StateGraph
+import logging
+
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
-def test_workflow_creation():
-    """测试工作流创建"""
-    print("=== 测试工作流创建 ===")
+def test_component(resource_type: str, component_name: str):
+    """测试单个组件转换"""
+    logger.info(f"\n{'='*60}")
+    logger.info(f"Testing Component: {component_name}")
+    logger.info(f"ResourceType: {resource_type}")
+    logger.info(f"{'='*60}\n")
+    
+    # 获取测试数据路径
+    test_data_dir = project_root / "test_data"
+    aem_repo_path = str(test_data_dir / "aem_components")
+    bdl_library_path = str(test_data_dir / "mui_library")
+    output_path = str(project_root / "output" / component_name)
+    
+    # 验证路径
+    if not os.path.exists(aem_repo_path):
+        logger.error(f"AEM repo path not found: {aem_repo_path}")
+        return False
+    
+    if not os.path.exists(bdl_library_path):
+        logger.warning(f"BDL library path not found: {bdl_library_path}")
+        logger.warning("Will continue without BDL library...")
+    
+    # 构建组件路径
+    component_path = os.path.join(aem_repo_path, resource_type.replace(".", "/"))
+    if not os.path.exists(component_path):
+        logger.error(f"Component path not found: {component_path}")
+        return False
+    
+    logger.info(f"AEM Repo Path: {aem_repo_path}")
+    logger.info(f"Component Path: {component_path}")
+    logger.info(f"BDL Library Path: {bdl_library_path}")
+    logger.info(f"Output Path: {output_path}\n")
+    
+    # 创建输出目录
+    os.makedirs(output_path, exist_ok=True)
+    
+    # 创建初始状态
+    initial_state = {
+        "resource_type": resource_type,
+        "aem_repo_path": aem_repo_path,
+        "component_path": component_path,
+        "bdl_library_path": bdl_library_path,
+        "output_path": output_path,
+        "files": [],
+        "file_analyses": [],
+        "selected_bdl_components": [],
+        "aem_component_summary": {},
+        "generated_code": "",
+        "code_file_path": "",
+        "review_results": {},
+        "review_passed": False,
+        "iteration_count": 0,
+        "max_iterations": 5,
+        "messages": [],
+        "dependency_tree": {},
+        "dependency_analyses": {}
+    }
+    
     try:
-        from workflow import create_workflow_graph
-        app = create_workflow_graph()
-        print("✓ Workflow 创建成功")
-        return True
+        # 创建工作流图
+        graph = create_workflow_graph()
+        
+        # 运行工作流
+        logger.info("Starting workflow...\n")
+        final_state = graph.invoke(initial_state)
+        
+        # 检查结果
+        if final_state.get("review_passed"):
+            logger.info(f"\n{'='*60}")
+            logger.info("✅ Workflow completed successfully!")
+            logger.info(f"{'='*60}\n")
+            
+            code_file = final_state.get("code_file_path", "")
+            if code_file and os.path.exists(code_file):
+                logger.info(f"Generated React component: {code_file}")
+                with open(code_file, 'r') as f:
+                    code = f.read()
+                    logger.info(f"Code length: {len(code)} characters")
+                    logger.info(f"First 500 characters:\n{code[:500]}\n")
+            
+            return True
+        else:
+            logger.warning(f"\n{'='*60}")
+            logger.warning("⚠️ Workflow completed but review did not pass")
+            logger.warning(f"Iterations: {final_state.get('iteration_count', 0)}")
+            logger.warning(f"{'='*60}\n")
+            return False
+            
     except Exception as e:
-        print(f"✗ Workflow 创建失败: {str(e)}")
+        logger.error(f"\n{'='*60}")
+        logger.error(f"❌ Workflow failed: {e}")
+        logger.error(f"{'='*60}\n")
         import traceback
         traceback.print_exc()
-        return False
-
-
-def test_imports():
-    """测试所有导入"""
-    print("\n=== 测试导入 ===")
-    imports_to_test = [
-        ("langchain_openai", "ChatOpenAI"),
-        ("langchain_core.tools", "tool"),
-        ("langchain.agents", "create_agent"),  # 更新为新 API
-        ("langchain_core.messages", "HumanMessage"),
-        ("langgraph.graph", "StateGraph"),
-        ("langgraph.checkpoint.memory", "MemorySaver"),
-        ("agents.base_agent", "BaseAgent"),
-        ("agents.file_collection_agent", "FileCollectionAgent"),
-        ("workflow", "create_workflow_graph"),
-    ]
-    
-    failed = []
-    for module, item in imports_to_test:
-        try:
-            mod = __import__(module, fromlist=[item])
-            getattr(mod, item)
-            print(f"✓ {module}.{item}")
-        except Exception as e:
-            print(f"✗ {module}.{item}: {str(e)}")
-            failed.append((module, item, str(e)))
-    
-    if failed:
-        print(f"\n失败 {len(failed)} 个导入")
-        return False
-    else:
-        print("\n所有导入测试通过")
-        return True
-
-
-def test_tools():
-    """测试工具函数"""
-    print("\n=== 测试工具函数 ===")
-    try:
-        from tools import (
-            list_files, read_file, write_file, file_exists,
-            create_directory, run_command, get_file_info
-        )
-        print("✓ 所有工具函数导入成功")
-        
-        # 测试基本功能（不实际执行）
-        test_dir = "/tmp"
-        if os.path.exists(test_dir):
-            files = list_files(test_dir, recursive=False)
-            print(f"✓ list_files 测试: 找到 {len(files)} 个文件")
-        
-        return True
-    except Exception as e:
-        print(f"✗ 工具函数测试失败: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return False
-
-
-def test_agent_initialization():
-    """测试 Agent 初始化（需要 API key）"""
-    print("\n=== 测试 Agent 初始化 ===")
-    
-    if not os.getenv("OPENAI_API_KEY"):
-        print("⚠ 跳过 Agent 初始化测试（需要 OPENAI_API_KEY）")
-        return True
-    
-    try:
-        from agents import FileCollectionAgent
-        agent = FileCollectionAgent()
-        print("✓ FileCollectionAgent 初始化成功")
-        return True
-    except Exception as e:
-        print(f"✗ Agent 初始化失败: {str(e)}")
         return False
 
 
 def main():
-    """主测试函数"""
-    print("开始测试...\n")
+    """主函数"""
+    print("\n" + "="*60)
+    print("AEM to React Component Converter - Test Suite")
+    print("="*60 + "\n")
     
-    results = []
+    # 测试组件列表
+    test_components = [
+        {
+            "resource_type": "example/components/button",
+            "name": "Button Component (Simple)"
+        },
+        {
+            "resource_type": "example/components/card",
+            "name": "Card Component (Complex with Dependencies)"
+        }
+    ]
     
-    # 测试导入
-    results.append(("导入测试", test_imports()))
+    print("Available test components:")
+    for i, comp in enumerate(test_components, 1):
+        print(f"  {i}. {comp['name']} ({comp['resource_type']})")
+    print()
     
-    # 测试工具
-    results.append(("工具函数测试", test_tools()))
-    
-    # 测试工作流创建
-    results.append(("工作流创建测试", test_workflow_creation()))
-    
-    # 测试 Agent 初始化（可选，需要 API key）
-    results.append(("Agent 初始化测试", test_agent_initialization()))
-    
-    # 汇总结果
-    print("\n" + "="*50)
-    print("测试结果汇总:")
-    print("="*50)
-    
-    passed = sum(1 for _, result in results if result)
-    total = len(results)
-    
-    for name, result in results:
-        status = "✓ 通过" if result else "✗ 失败"
-        print(f"{name}: {status}")
-    
-    print(f"\n总计: {passed}/{total} 通过")
-    
-    if passed == total:
-        print("\n🎉 所有测试通过！")
-        return 0
+    # 选择要测试的组件
+    if len(sys.argv) > 1:
+        try:
+            choice = int(sys.argv[1])
+            if 1 <= choice <= len(test_components):
+                selected = test_components[choice - 1]
+            else:
+                print(f"Invalid choice. Using first component.")
+                selected = test_components[0]
+        except ValueError:
+            print(f"Invalid argument. Using first component.")
+            selected = test_components[0]
     else:
-        print(f"\n⚠️  有 {total - passed} 个测试失败")
-        return 1
+        # 默认测试所有组件
+        print("Testing all components...\n")
+        results = []
+        for comp in test_components:
+            result = test_component(comp["resource_type"], comp["name"])
+            results.append((comp["name"], result))
+        
+        # 打印总结
+        print("\n" + "="*60)
+        print("Test Summary")
+        print("="*60)
+        for name, result in results:
+            status = "✅ PASSED" if result else "❌ FAILED"
+            print(f"  {name}: {status}")
+        print("="*60 + "\n")
+        return
+    
+    # 测试选定的组件
+    test_component(selected["resource_type"], selected["name"])
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
