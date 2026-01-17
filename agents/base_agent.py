@@ -5,8 +5,6 @@
 """
 from typing import List, Dict, Any, Optional, TypeVar, Generic, Type
 from langchain_openai import ChatOpenAI
-from langchain_community.llms import Ollama
-from langchain_core.tools import tool
 from langchain.agents import create_agent
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
@@ -26,7 +24,7 @@ T = TypeVar('T', bound=BaseModel)
 
 class BaseAgent:
     """基础 Agent 类，提供通用的 agent 创建功能（适配 LangChain 1.2+）"""
-    
+
     def __init__(
         self,
         name: str,
@@ -47,11 +45,11 @@ class BaseAgent:
         self.model = None
         self.agent_graph = None
         self.output_parser = None
-        
+
         self._initialize_model()
         self._setup_output_parser()
         self._build_agent()
-    
+
     def _initialize_model(self):
         """初始化模型（延迟初始化，避免在没有 API key 时立即失败）"""
         # api_key = os.getenv("OPENAI_API_KEY")
@@ -59,17 +57,14 @@ class BaseAgent:
         #     raise ValueError(
         #         "OPENAI_API_KEY not found. Please set it in .env file or environment variables."
         #     )
-        # self.model = ChatOpenAI(
-        #     model=self.model_name,
-        #     temperature=self.temperature,
-        #     api_key=api_key
-        # )
-        self.model = Ollama(
-            model="llama3:latest",  # 与你启动的模型名称一致
-            base_url="http://localhost:11434",  # Ollama 默认地址
-            temperature=0.1,
-            # 其他参数...
-        )
+        self.model =  ChatOpenAI(
+                api_key="181cc99c-f9d5-4a80-af1d-3296e7a371af",
+                base_url="https://ark.cn-beijing.volces.com/api/v3",
+                model="ep-20250721151616-bkfms",
+                temperature=0,
+                max_tokens=2048,
+            )
+
     
     def _setup_output_parser(self):
         """设置输出解析器（如果提供了 schema）"""
