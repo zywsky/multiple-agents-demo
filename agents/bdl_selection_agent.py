@@ -33,11 +33,22 @@ class BDLSelectionAgent(BaseAgent):
     """BDL 组件选择 Agent"""
     
     def __init__(self):
+        from tools import (
+            search_files_by_pattern,
+            find_files_by_name,
+            search_text_in_files,
+            get_file_tree
+        )
+        
         tools = [
             search_bdl_components,
             read_bdl_component,
             list_files,
-            read_file
+            read_file,
+            search_files_by_pattern,
+            find_files_by_name,
+            search_text_in_files,
+            get_file_tree
         ]
         
         system_prompt = """You are a BDL (company's internal component library) component selection expert.

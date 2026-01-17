@@ -42,11 +42,30 @@ class AEMAnalysisAgent(BaseAgent):
     """AEM 分析 Agent - 逐个文件分析"""
     
     def __init__(self):
+        from tools import (
+            list_files,
+            search_files_by_pattern,
+            search_text_in_files,
+            get_component_files_by_type,
+            extract_css_classes_from_file,
+            extract_htl_dependencies,
+            find_files_in_similar_paths,
+            find_css_for_component_in_similar_paths
+        )
+        
         tools = [
             analyze_htl_file,
             analyze_dialog_file,
             analyze_script_file,
-            read_file
+            read_file,
+            list_files,
+            search_files_by_pattern,
+            search_text_in_files,
+            get_component_files_by_type,
+            extract_css_classes_from_file,
+            extract_htl_dependencies,
+            find_files_in_similar_paths,
+            find_css_for_component_in_similar_paths
         ]
         
         system_prompt = """You are an AEM (Adobe Experience Manager) expert analyst.
@@ -75,8 +94,15 @@ IMPORTANT ANALYSIS PRIORITIES:
    - Extract any data fetching logic
    - Identify component lifecycle hooks usage
 
-4. Java Sling Models (*.java) - Will be provided later
-   - Note: Focus on the data structure expected
+4. Java Sling Models (*.java) - CRITICAL
+   - Extract class name and package
+   - Extract @Model annotation (resourceType, adaptables, adapters)
+   - Extract all fields with their types and annotations (@ValueMapValue, @Required, @NotNull, etc.)
+   - Extract @PostConstruct methods (data transformation logic)
+   - Extract getter methods (to understand field access)
+   - Extract validation rules (@Required, @NotNull, @Size, @Min, @Max, etc.)
+   - Note: This information is critical for generating accurate TypeScript interfaces
+   - Note: @PostConstruct methods need to be converted to React useEffect or useMemo hooks
 
 5. CSS Files (*.css) - Will be provided later
    - Note: Styling approach will be handled separately
@@ -178,6 +204,85 @@ Focus on:
 5. Dependencies: Note any libraries used (may need React equivalents)
 
 This JavaScript logic should be converted to React hooks and event handlers.
+"""
+        elif file_type == 'java':
+            # 使用 Java 分析器解析 Java 文件
+            try:
+                from utils.java_analyzer import parse_java_file
+                java_parsed = parse_java_file(file_path)
+                
+                if java_parsed:
+                    class_name = java_parsed.get('class_name', 'Unknown')
+                    resource_type = java_parsed.get('resource_type', '')
+                    fields = java_parsed.get('fields', [])
+                    data_structure = java_parsed.get('data_structure', {})
+                    transformation_logic = java_parsed.get('transformation_logic', [])
+                    validation_rules = java_parsed.get('validation_rules', [])
+                    
+                    fields_summary = []
+                    for field in fields[:10]:  # 前10个字段
+                        field_name = field.get('name', '')
+                        field_type = field.get('type', '')
+                        is_required = field.get('is_required', False)
+                        annotations = [ann.get('name', '') for ann in field.get('annotations', [])]
+                        required_marker = " (required)" if is_required else ""
+                        fields_summary.append(f"  - {field_name}: {field_type}{required_marker} [{', '.join(annotations)}]")
+                    
+                    type_specific_prompt = f"""
+This is a Java Sling Model file - CRITICAL for React TypeScript types and data structure.
+
+Focus on:
+1. Class Structure: {class_name} (ResourceType: {resource_type})
+2. Fields: Extract all fields with their types and annotations
+3. TypeScript Mapping: Map Java types to TypeScript types (String → string, Integer → number, etc.)
+4. Required Fields: Fields with @Required, @NotNull → required TypeScript props
+5. Data Transformation: @PostConstruct methods → React useEffect or useMemo hooks
+6. Validation Rules: Extract validation annotations for form validation
+
+Extracted Java Sling Model information:
+- Class: {class_name}
+- ResourceType: {resource_type}
+- Fields ({len(fields)} total):
+{chr(10).join(fields_summary)}
+- Data Structure (TypeScript):
+  Properties: {len(data_structure.get('properties', {}))}
+  Required: {', '.join(data_structure.get('required_fields', [])[:5])}
+  Optional: {', '.join(data_structure.get('optional_fields', [])[:5])}
+- Transformation Logic (@PostConstruct methods): {len(transformation_logic)} methods
+- Validation Rules: {len(validation_rules)} rules
+
+CONVERSION NOTES:
+- This Java Sling Model defines the data structure for the React component
+- Generate TypeScript interface based on the fields and types above
+- Convert @PostConstruct methods to React useEffect or useMemo hooks
+- Apply validation rules using form validation library (react-hook-form, yup)
+- Required fields from Java annotations must be required in TypeScript interface
+"""
+                else:
+                    type_specific_prompt = """
+This is a Java Sling Model file - CRITICAL for React TypeScript types.
+
+Focus on:
+1. Extract class name and package
+2. Extract @Model annotation (resourceType)
+3. Extract all fields with types and annotations
+4. Extract @PostConstruct methods (data transformation logic)
+5. Extract validation rules
+
+This information is critical for generating accurate TypeScript interfaces.
+"""
+            except Exception as e:
+                logger.warning(f"Failed to parse Java file {file_path}: {e}")
+                type_specific_prompt = """
+This is a Java Sling Model file - CRITICAL for React TypeScript types.
+
+Focus on extracting:
+1. Class structure and @Model annotation
+2. All fields with their types
+3. @PostConstruct methods
+4. Validation annotations
+
+This information is critical for generating accurate TypeScript interfaces.
 """
         
         prompt = f"""Analyze this AEM component file for React conversion:

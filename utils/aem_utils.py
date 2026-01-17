@@ -4,7 +4,7 @@ AEM 工具函数
 """
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Set
 import logging
 
 logger = logging.getLogger(__name__)
@@ -109,6 +109,20 @@ def categorize_aem_files(files: List[str]) -> Dict[str, List[str]]:
             categorized['other'].append(file_path)
     
     return categorized
+
+
+def extract_css_classes_from_htl(htl_content: str) -> Set[str]:
+    """
+    从 HTL 内容中提取所有使用的 CSS class
+    
+    Args:
+        htl_content: HTL 模板内容
+    
+    Returns:
+        CSS class 集合
+    """
+    from utils.css_resolver import extract_css_classes_from_htl as _extract
+    return _extract(htl_content)
 
 
 def extract_htl_properties(htl_content: str) -> Dict[str, any]:

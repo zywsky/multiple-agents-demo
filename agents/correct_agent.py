@@ -23,9 +23,13 @@ class CorrectAgent(BaseAgent):
     """代码修正 Agent"""
     
     def __init__(self):
+        from tools import search_text_in_files, get_file_info
+        
         tools = [
             read_code_for_correction,
-            write_corrected_code
+            write_corrected_code,
+            search_text_in_files,
+            get_file_info
         ]
         
         system_prompt = """You are a code correction expert specializing in fixing React code based on review feedback.

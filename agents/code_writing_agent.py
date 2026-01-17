@@ -31,10 +31,21 @@ class CodeWritingAgent(BaseAgent):
     """代码编写 Agent"""
     
     def __init__(self):
+        from tools import (
+            list_files,
+            search_files_by_pattern,
+            search_text_in_files,
+            get_file_tree
+        )
+        
         tools = [
             read_source_code,
             write_react_component,
-            create_component_directory
+            create_component_directory,
+            list_files,
+            search_files_by_pattern,
+            search_text_in_files,
+            get_file_tree
         ]
         
         system_prompt = """You are an expert React and BDL developer.

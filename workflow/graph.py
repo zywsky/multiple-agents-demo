@@ -149,15 +149,16 @@ def create_workflow_graph():
         logger.info(
             f"Analyzing current component: {len(current_component_files)} files. "
             f"HTL: {len(categorized['htl'])}, Dialog: {len(categorized['dialog'])}, "
-            f"JS: {len(categorized['js'])}"
+            f"JS: {len(categorized['js'])}, Java: {len(categorized['java'])}"
         )
         
-        # 过滤掉后续会提供的文件类型
-        # 只分析当前可用的：HTL, Dialog, JS, Config
+        # 分析关键文件：HTL, Dialog, JS, Java, Config
+        # Java 文件现在也需要分析（用于提取 Sling Model 数据结构）
         files_to_analyze = (
             categorized['htl'] +
             categorized['dialog'] +
             categorized['js'] +
+            categorized['java'] +  # 添加 Java 文件分析
             categorized['config']
         )
         
@@ -233,11 +234,12 @@ def create_workflow_graph():
                 dep_prioritized = prioritize_aem_files(dep_files)
                 dep_categorized = categorize_aem_files(dep_prioritized)
                 
-                # 只分析关键文件
+                # 只分析关键文件（包括 Java）
                 dep_files_to_analyze = (
                     dep_categorized['htl'] +
                     dep_categorized['dialog'] +
                     dep_categorized['js'] +
+                    dep_categorized['java'] +  # 添加 Java 文件分析
                     dep_categorized['config']
                 )[:10]  # 限制每个依赖组件最多分析 10 个文件
                 
@@ -449,6 +451,66 @@ Select BDL components and return their file paths with reasoning."""
         htl_analyses = [fa for fa in file_analyses if fa.get('file_type') in ['htl', 'html']]
         dialog_analyses = [fa for fa in file_analyses if fa.get('file_type') == 'dialog']
         js_analyses = [fa for fa in file_analyses if fa.get('file_type') == 'js']
+        java_analyses = [fa for fa in file_analyses if fa.get('file_type') == 'java']
+        
+        # 提取并查找 CSS 样式（当前组件 + 依赖组件）
+        css_summary = {}
+        component_path = state.get("component_path", "")
+        aem_repo_path = state.get("aem_repo_path", "")
+        dependency_analyses = state.get("dependency_analyses", {})
+        dependency_tree = state.get("dependency_tree", {})
+        
+        if htl_analyses and component_path and aem_repo_path:
+            # 1. 处理当前组件的 CSS
+            first_htl = htl_analyses[0]
+            htl_file_path = first_htl.get('file_path', '')
+            if htl_file_path:
+                try:
+                    from tools import read_file
+                    from utils.css_resolver import (
+                        build_css_summary,
+                        build_dependency_css_summary,
+                        merge_css_summaries
+                    )
+                    htl_content = read_file(htl_file_path)
+                    current_css_summary = build_css_summary(
+                        component_path,
+                        htl_content,
+                        aem_repo_path
+                    )
+                    logger.info(
+                        f"Current Component CSS: {len(current_css_summary.get('used_classes', []))} classes used, "
+                        f"{len(current_css_summary.get('found_classes', []))} found, "
+                        f"{len(current_css_summary.get('missing_classes', []))} missing"
+                    )
+                    
+                    # 2. 处理依赖组件的 CSS
+                    dependency_css_summaries = {}
+                    if dependency_analyses and dependency_tree:
+                        dependency_css_summaries = build_dependency_css_summary(
+                            dependency_analyses,
+                            dependency_tree,
+                            aem_repo_path
+                        )
+                        logger.info(
+                            f"Dependency Components CSS: {len(dependency_css_summaries)} components processed"
+                        )
+                    
+                    # 3. 合并所有 CSS 摘要
+                    if dependency_css_summaries:
+                        css_summary = merge_css_summaries(current_css_summary, dependency_css_summaries)
+                        logger.info(
+                            f"Merged CSS Summary: {len(css_summary.get('used_classes', []))} total classes used, "
+                            f"{len(css_summary.get('found_classes', []))} found, "
+                            f"{len(css_summary.get('missing_classes', []))} missing"
+                        )
+                    else:
+                        css_summary = current_css_summary
+                    
+                except Exception as e:
+                    logger.warning(f"Failed to build CSS summary: {e}")
+                    import traceback
+                    traceback.print_exc()
         
         # 构建关键信息摘要
         htl_summary = ""
@@ -484,6 +546,66 @@ Select BDL components and return their file paths with reasoning."""
                 for fa in js_analyses
             ])
             js_summary = f"\n\n=== JAVASCRIPT LOGIC (REACT INTERACTIONS) - IMPORTANT ===\n{js_analyses_str}\n"
+        
+        # 提取并分析 Java Sling Models（用于生成 TypeScript 类型和数据转换逻辑）
+        java_summary = ""
+        java_analyses_raw = []
+        if java_analyses:
+            try:
+                from utils.java_analyzer import parse_java_file, build_java_analysis_summary
+                
+                # 解析所有 Java 文件
+                for java_analysis in java_analyses:
+                    java_file_path = java_analysis.get('file_path', '')
+                    if java_file_path:
+                        try:
+                            java_parsed = parse_java_file(java_file_path)
+                            if java_parsed:
+                                java_analyses_raw.append(java_parsed)
+                                logger.info(f"Parsed Java Sling Model: {java_parsed.get('class_name', 'Unknown')}")
+                        except Exception as e:
+                            logger.warning(f"Failed to parse Java file {java_file_path}: {e}")
+                
+                # 构建 Java 分析摘要
+                if java_analyses_raw:
+                    java_summary = build_java_analysis_summary(java_analyses_raw)
+                    logger.info(f"Built Java analysis summary for {len(java_analyses_raw)} Sling Models")
+            except Exception as e:
+                logger.warning(f"Failed to build Java analysis summary: {e}")
+                import traceback
+                traceback.print_exc()
+        
+        # 处理依赖组件的 Java 文件
+        dependency_java_analyses = []
+        if dependency_analyses:
+            try:
+                from utils.java_analyzer import parse_java_file
+                
+                for dep_resource_type, dep_analyses in dependency_analyses.items():
+                    for dep_analysis in dep_analyses:
+                        if dep_analysis.get('file_type') == 'java':
+                            java_file_path = dep_analysis.get('file_path', '')
+                            if java_file_path:
+                                try:
+                                    java_parsed = parse_java_file(java_file_path)
+                                    if java_parsed:
+                                        dependency_java_analyses.append(java_parsed)
+                                except Exception as e:
+                                    logger.warning(f"Failed to parse dependency Java file {java_file_path}: {e}")
+            except Exception as e:
+                logger.warning(f"Failed to parse dependency Java files: {e}")
+        
+        # 合并依赖组件的 Java 分析
+        if dependency_java_analyses:
+            try:
+                from utils.java_analyzer import build_java_analysis_summary
+                dependency_java_summary = build_java_analysis_summary(dependency_java_analyses)
+                if java_summary:
+                    java_summary += "\n\n=== DEPENDENCY COMPONENTS' SLING MODELS ===\n" + dependency_java_summary
+                else:
+                    java_summary = "\n\n=== DEPENDENCY COMPONENTS' SLING MODELS ===\n" + dependency_java_summary
+            except Exception as e:
+                logger.warning(f"Failed to build dependency Java summary: {e}")
         
         # 读取选定的 BDL 组件源代码
         bdl_components_code = {}
@@ -538,16 +660,19 @@ Select BDL components and return their file paths with reasoning."""
         has_htl = len(htl_analyses) > 0
         has_dialog = len(dialog_analyses) > 0
         has_js = len(js_analyses) > 0
+        has_java = len(java_analyses) > 0 or len(java_analyses_raw) > 0
         
         completeness_note = ""
         if not has_htl:
             completeness_note = "\n⚠️ WARNING: Missing HTL template - cannot determine UI structure accurately.\n"
         elif not has_dialog:
             completeness_note = "\n⚠️ WARNING: Missing Dialog configuration - cannot determine Props interface accurately.\n"
+        elif has_htl and has_dialog and has_js and has_java:
+            completeness_note = "\n✓ COMPLETE INFORMATION: HTL + Dialog + JS + Java Sling Model provide complete information for accurate React conversion with proper TypeScript types.\n"
         elif has_htl and has_dialog and has_js:
-            completeness_note = "\n✓ COMPLETE INFORMATION: HTL + Dialog + JS provide complete information for accurate React conversion.\n"
+            completeness_note = "\n✓ SUFFICIENT INFORMATION: HTL + Dialog + JS provide enough information for React conversion. Java Sling Model would improve type accuracy.\n"
         elif has_htl and has_dialog:
-            completeness_note = "\n✓ SUFFICIENT INFORMATION: HTL + Dialog provide enough information for basic React conversion.\n"
+            completeness_note = "\n✓ BASIC INFORMATION: HTL + Dialog provide basic information for React conversion. JS and Java Sling Model would improve completeness.\n"
         
         prompt = f"""Generate a React component using BDL that perfectly replicates the AEM component:
 
@@ -560,10 +685,85 @@ Component Name: {component_name}
 {htl_summary}
 {dialog_summary}
 {js_summary}
+{java_summary}
 
 === SELECTED BDL COMPONENTS ===
 {bdl_components_info}
+"""
+        
+        # 添加 CSS 样式信息（包括依赖组件）
+        if css_summary:
+            css_section = f"""
 
+=== CSS STYLES (from AEM) ===
+
+The component and its dependencies use the following CSS classes:
+- Total classes used: {len(css_summary.get('used_classes', []))}
+- Found CSS definitions: {len(css_summary.get('found_classes', []))} classes
+- Missing CSS definitions: {len(css_summary.get('missing_classes', []))} classes
+
+CSS Rules Found (Current Component):
+"""
+            # 分离当前组件和依赖组件的 CSS 规则
+            current_css_rules = {}
+            dependency_css_rules = {}
+            
+            for class_name, rules_dict in css_summary.get('css_rules', {}).items():
+                for file_path, rule in rules_dict.items():
+                    if file_path.startswith('['):
+                        # 依赖组件的规则（标记为 [resource_type] path）
+                        if class_name not in dependency_css_rules:
+                            dependency_css_rules[class_name] = []
+                        dependency_css_rules[class_name].append((file_path, rule))
+                    else:
+                        # 当前组件的规则
+                        if class_name not in current_css_rules:
+                            current_css_rules[class_name] = []
+                        current_css_rules[class_name].append((file_path, rule))
+            
+            # 显示当前组件的 CSS
+            for class_name, rules_list in current_css_rules.items():
+                css_section += f"\n.{class_name}:\n"
+                for file_path, rule in rules_list:
+                    rule_preview = rule[:300] + "..." if len(rule) > 300 else rule
+                    css_section += f"  From: {file_path}\n  {rule_preview}\n"
+            
+            # 显示依赖组件的 CSS
+            if dependency_css_rules:
+                css_section += "\nCSS Rules from Dependency Components:\n"
+                for class_name, rules_list in dependency_css_rules.items():
+                    css_section += f"\n.{class_name}:\n"
+                    for file_path, rule in rules_list:
+                        rule_preview = rule[:300] + "..." if len(rule) > 300 else rule
+                        css_section += f"  From: {file_path}\n  {rule_preview}\n"
+            
+            # 显示依赖组件的 CSS 摘要
+            if css_summary.get('dependency_css'):
+                css_section += "\n\nDependency Components CSS Summary:\n"
+                for dep_resource_type, dep_css in css_summary.get('dependency_css', {}).items():
+                    css_section += f"\n- {dep_resource_type}:\n"
+                    css_section += f"  Used classes: {len(dep_css.get('used_classes', []))}\n"
+                    css_section += f"  Found: {len(dep_css.get('found_classes', []))}\n"
+                    css_section += f"  Missing: {len(dep_css.get('missing_classes', []))}\n"
+            
+            if css_summary.get('missing_classes'):
+                css_section += f"\n⚠️ Missing CSS for classes: {', '.join(css_summary.get('missing_classes', []))}\n"
+                css_section += "Note: These classes may be defined in global styles or need manual handling.\n"
+            
+            css_section += """
+IMPORTANT: When converting to React:
+1. Convert these CSS classes to BDL styling approach (sx prop, styled-components, or CSS modules)
+2. Preserve the visual appearance and behavior (colors, spacing, transitions, etc.)
+3. Handle responsive styles if present
+4. Maintain hover, focus, and other pseudo-class states
+5. For missing classes, you may need to infer styles or use BDL's default styling
+6. Include styles from dependency components when they are used in the final React component
+"""
+            prompt += css_section
+        else:
+            prompt += "\n=== CSS STYLES ===\nNote: CSS styles will be handled separately. Focus on structure and functionality.\n"
+
+        prompt += f"""
 === CRITICAL CONVERSION REQUIREMENTS ===
 
 1. UI Structure (from HTL Template):
@@ -586,11 +786,15 @@ Component Name: {component_name}
    - Default values from Dialog → default prop values
    - Field labels → JSDoc comments for props
 
-3. Data Binding (from HTL data-sly-use):
+3. Data Binding (from HTL data-sly-use and Java Sling Model):
    - data-sly-use.model → React props (data comes from parent or API)
    - model.property → props.property or state.property
    - If model is used for calculations → useMemo or derived state
-   - Sling Model structure → TypeScript interface or PropTypes
+   - **CRITICAL: Use the TypeScript interface from Java Sling Model analysis above**
+   - Java Sling Model fields → TypeScript Props interface (with correct types)
+   - @PostConstruct methods → React useEffect or useMemo hooks for data transformation
+   - Required fields from Java annotations (@Required, @NotNull) → required TypeScript props
+   - Default values from Java → default prop values in React
 
 4. Conditional Rendering (from HTL data-sly-test):
    - data-sly-test="{{condition}}" → use single braces: condition && <Component />

@@ -34,7 +34,14 @@ class SecurityReviewAgent(BaseAgent):
     """安全审查 Agent"""
     
     def __init__(self):
-        tools = [read_code_file, check_file_exists_tool]
+        from tools import search_text_in_files, get_file_info
+        
+        tools = [
+            read_code_file,
+            check_file_exists_tool,
+            search_text_in_files,
+            get_file_info
+        ]
         
         system_prompt = """You are a security expert reviewing React code for security vulnerabilities.
 
@@ -126,7 +133,15 @@ class BuildReviewAgent(BaseAgent):
     """构建审查 Agent"""
     
     def __init__(self):
-        tools = [read_code_file, run_build_command, check_file_exists_tool]
+        from tools import search_text_in_files, get_file_info
+        
+        tools = [
+            read_code_file,
+            run_build_command,
+            check_file_exists_tool,
+            search_text_in_files,
+            get_file_info
+        ]
         
         system_prompt = """You are a build and code quality expert for React code.
 
@@ -221,7 +236,14 @@ class BDLReviewAgent(BaseAgent):
     """BDL 规范审查 Agent"""
     
     def __init__(self):
-        tools = [read_code_file, check_file_exists_tool]
+        from tools import search_text_in_files, get_file_info
+        
+        tools = [
+            read_code_file,
+            check_file_exists_tool,
+            search_text_in_files,
+            get_file_info
+        ]
         
         system_prompt = """You are a BDL (company's internal component library) expert.
 Your task is to review React code to ensure it follows BDL best practices and conventions.
