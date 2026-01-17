@@ -124,10 +124,27 @@ Focus on:
 
 Extracted HTL properties:
 - Uses Sling Models: {htl_props.get('uses_models', [])}
+- Model properties used: {htl_props.get('model_properties_used', [])[:10]}  # 前10个
+- HTL-specific features:
+  * data-sly-call: {htl_props.get('data_sly_call', [])} (AEM-specific, remove in React)
+  * data-sly-element: {htl_props.get('data_sly_element', [])} (dynamic element type)
+  * data-sly-attribute: {htl_props.get('data_sly_attribute', [])} (dynamic attributes)
+  * data-sly-repeat: {htl_props.get('data_sly_repeat', [])} (iteration)
+  * data-sly-test: {htl_props.get('data_sly_test', [])} (conditional rendering)
+  * data-sly-resource: {htl_props.get('data_sly_resource', [])} (component inclusion)
+  * sly elements: {len(htl_props.get('sly_elements', []))} found (logic binding, not rendered)
+  * i18n usage: {htl_props.get('i18n_usage', [])} (internationalization)
 - UI Elements detected: {htl_props.get('ui_elements', [])}
 - Event handlers: {htl_props.get('event_handlers', [])}
 
-This HTL structure should be converted to JSX structure in React.
+CONVERSION NOTES:
+- data-sly-call: AEM-specific (placeholder, styles/scripts loading) - Remove in React or convert to imports
+- data-sly-element: Convert to React conditional rendering or dynamic component
+- data-sly-attribute: Convert to React conditional attribute spreading
+- sly elements: Remove (logic binding, use directly in React)
+- i18n: Convert to React i18n library (e.g., react-i18next)
+
+This HTL structure should be converted to JSX structure in React, handling all HTL-specific features appropriately.
 """
         elif file_type == 'dialog':
             # 提取 Dialog 特定信息

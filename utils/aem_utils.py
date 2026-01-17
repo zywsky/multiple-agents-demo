@@ -113,17 +113,28 @@ def categorize_aem_files(files: List[str]) -> Dict[str, List[str]]:
 
 def extract_htl_properties(htl_content: str) -> Dict[str, any]:
     """
-    从 HTL 模板中提取关键属性
+    从 HTL 模板中提取关键属性（增强版：支持更多 HTL 特性）
     
     Returns:
         提取的属性字典
     """
+    import re
+    
     properties = {
         'uses_models': [],
+        'model_properties_used': [],  # 从 HTL 使用中提取的模型属性
         'uses_sly': False,
-        'data_attributes': [],
+        'data_sly_attributes': [],  # 所有 data-sly-* 属性
+        'sly_elements': [],  # sly 元素使用
+        'data_sly_call': [],  # data-sly-call 使用
+        'data_sly_element': [],  # data-sly-element 使用
+        'data_sly_attribute': [],  # data-sly-attribute 使用
+        'data_sly_repeat': [],  # data-sly-repeat 使用
+        'data_sly_test': [],  # data-sly-test 使用
+        'data_sly_resource': [],  # data-sly-resource 使用
         'event_handlers': [],
-        'ui_elements': []
+        'ui_elements': [],
+        'i18n_usage': []  # i18n 使用
     }
     
     content_lower = htl_content.lower()
@@ -132,11 +143,71 @@ def extract_htl_properties(htl_content: str) -> Dict[str, any]:
     if 'data-sly' in content_lower:
         properties['uses_sly'] = True
     
-    # 提取 data-sly-use
-    import re
-    use_pattern = r'data-sly-use\s*\.?\s*([\w.]+)'
-    uses = re.findall(use_pattern, content_lower)
+    # 提取所有 data-sly-* 属性
+    data_sly_pattern = r'data-sly-(\w+)'
+    all_data_sly = re.findall(data_sly_pattern, content_lower)
+    properties['data_sly_attributes'] = list(set(all_data_sly))
+    
+    # 提取 data-sly-use 和模型名称
+    use_pattern = r'data-sly-use(?:\.\w+)?\s*=\s*["\']([^"\']+)["\']'
+    uses = re.findall(use_pattern, htl_content, re.IGNORECASE)
     properties['uses_models'] = list(set(uses))
+    
+    # 提取模型属性使用（如 ${button.text}, ${model.property}）
+    model_prop_pattern = r'\$\{([\w.]+)\}'
+    model_props = re.findall(model_prop_pattern, htl_content)
+    # 过滤掉简单的变量，提取可能的模型属性
+    model_properties = [prop for prop in model_props if '.' in prop]
+    properties['model_properties_used'] = list(set(model_properties))
+    
+    # 提取 sly 元素
+    sly_pattern = r'<sly[^>]*>'
+    sly_elements = re.findall(sly_pattern, htl_content, re.IGNORECASE)
+    if sly_elements:
+        properties['sly_elements'] = [elem[:100] for elem in sly_elements]  # 限制长度
+    
+    # 提取 data-sly-call
+    call_pattern = r'data-sly-call\s*=\s*["\']([^"\']+)["\']'
+    calls = re.findall(call_pattern, htl_content, re.IGNORECASE)
+    properties['data_sly_call'] = list(set(calls))
+    
+    # 提取 data-sly-element
+    element_pattern = r'data-sly-element\s*=\s*["\']([^"\']+)["\']'
+    elements = re.findall(element_pattern, htl_content, re.IGNORECASE)
+    properties['data_sly_element'] = list(set(elements))
+    
+    # 提取 data-sly-attribute
+    attr_pattern = r'data-sly-attribute(?:\.\w+)?\s*=\s*["\']([^"\']+)["\']'
+    attrs = re.findall(attr_pattern, htl_content, re.IGNORECASE)
+    properties['data_sly_attribute'] = list(set(attrs))
+    
+    # 提取 data-sly-repeat
+    repeat_pattern = r'data-sly-repeat\s*=\s*["\']([^"\']+)["\']'
+    repeats = re.findall(repeat_pattern, htl_content, re.IGNORECASE)
+    properties['data_sly_repeat'] = list(set(repeats))
+    
+    # 提取 data-sly-test
+    test_pattern = r'data-sly-test\s*=\s*["\']([^"\']+)["\']'
+    tests = re.findall(test_pattern, htl_content, re.IGNORECASE)
+    properties['data_sly_test'] = list(set(tests))
+    
+    # 提取 data-sly-resource
+    resource_pattern = r'data-sly-resource\s*=\s*["\']([^"\']+)["\']'
+    resources = re.findall(resource_pattern, htl_content, re.IGNORECASE)
+    properties['data_sly_resource'] = list(set(resources))
+    
+    # 提取 i18n 使用（@i18n 或 data-sly-i18n）
+    i18n_patterns = [
+        r'@i18n',
+        r'data-sly-i18n\s*=\s*["\']([^"\']+)["\']',
+        r'i18n\s*\.\s*\w+'
+    ]
+    i18n_usage = []
+    for pattern in i18n_patterns:
+        matches = re.findall(pattern, htl_content, re.IGNORECASE)
+        if matches:
+            i18n_usage.extend(matches if isinstance(matches[0], str) else ['found'])
+    properties['i18n_usage'] = list(set(i18n_usage)) if i18n_usage else []
     
     # 提取事件处理器
     event_pattern = r'on\w+\s*=\s*["\']([^"\']+)["\']'

@@ -137,6 +137,8 @@ def main():
         "bdl_library_path": bdl_library_path,
         "output_path": output_path,
         "files": [],
+        "dependency_tree": {},
+        "dependency_analyses": {},
         "file_analyses": [],
         "selected_bdl_components": [],
         "aem_component_summary": {},  # AEM 组件综合摘要
