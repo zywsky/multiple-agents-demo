@@ -139,6 +139,7 @@ def main():
         "files": [],
         "file_analyses": [],
         "selected_bdl_components": [],
+        "aem_component_summary": {},  # AEM 组件综合摘要
         "generated_code": "",
         "code_file_path": "",
         "review_results": {},

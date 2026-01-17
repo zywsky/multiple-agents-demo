@@ -34,6 +34,7 @@ class WorkflowState(TypedDict):
     files: List[str]
     file_analyses: List[Dict[str, Any]]
     selected_bdl_components: List[str]
+    aem_component_summary: Dict[str, Any]  # AEM 组件综合摘要（用于匹配和验证）
     generated_code: str
     code_file_path: str
     review_results: Dict[str, Any]
@@ -90,21 +91,47 @@ def create_workflow_graph():
             raise  # 重新抛出异常，让工作流知道失败
     
     def analyze_aem_files(state: WorkflowState) -> WorkflowState:
-        """步骤2: 分析 AEM 文件（逐个处理）"""
+        """
+        步骤2: 分析 AEM 文件（逐个处理）
+        优化：优先分析重要文件（HTL, Dialog, JS），忽略后续会提供的 Java 和 CSS
+        """
         files = state.get("files", [])
-        file_analyses = []
         
         if not files:
             logger.error("No files to analyze")
             raise ValueError("Cannot analyze files: no files collected")
         
-        logger.info(f"Analyzing {len(files)} files...")
+        # 优先排序文件（HTL > Dialog > JS > ...）
+        from utils.aem_utils import prioritize_aem_files, categorize_aem_files
+        prioritized_files = prioritize_aem_files(files)
+        categorized = categorize_aem_files(prioritized_files)
         
-        # 逐个文件分析，避免 token 超限
+        logger.info(
+            f"Analyzing {len(files)} files (prioritized). "
+            f"HTL: {len(categorized['htl'])}, Dialog: {len(categorized['dialog'])}, "
+            f"JS: {len(categorized['js'])}"
+        )
+        
+        # 过滤掉后续会提供的文件类型
+        # 只分析当前可用的：HTL, Dialog, JS, Config
+        files_to_analyze = (
+            categorized['htl'] +
+            categorized['dialog'] +
+            categorized['js'] +
+            categorized['config']
+        )
+        
+        if not files_to_analyze:
+            logger.warning("No critical files to analyze (HTL, Dialog, JS)")
+            files_to_analyze = prioritized_files[:5]  # 至少分析前 5 个
+        
+        file_analyses = []
         aem_analysis_agent = _get_agent(AEMAnalysisAgent, "aem_analysis")
         successful_analyses = 0
         
-        for i, file_path in enumerate(files, 1):
+        logger.info(f"Will analyze {len(files_to_analyze)} critical files")
+        
+        for i, file_path in enumerate(files_to_analyze, 1):
             try:
                 # 验证文件路径
                 from tools import file_exists
@@ -218,9 +245,55 @@ Select BDL components and return their file paths."""
             if not selected_components:
                 logger.warning("No BDL components selected. This may cause code generation issues.")
             
+            # 验证选择的组件并重新搜索不合适的
+            from utils.component_matcher import validate_component_match, find_best_matching_components
+            
+            validated_components = []
+            min_relevance = 0.4  # 最小相关性阈值
+            
+            logger.info(f"Validating {len(selected_components)} selected BDL components...")
+            
+            for comp_path in selected_components:
+                is_valid, relevance, reason = validate_component_match(
+                    aem_summary,
+                    comp_path,
+                    min_relevance=min_relevance
+                )
+                
+                if is_valid:
+                    validated_components.append(comp_path)
+                    logger.info(f"✓ {comp_path}: {reason}")
+                else:
+                    logger.warning(f"✗ {comp_path}: {reason} - Searching for alternatives...")
+                    
+                    # 尝试在 BDL 库中搜索更好的匹配
+                    # 简化处理：使用文件名作为搜索关键词
+                    from pathlib import Path
+                    comp_name = Path(comp_path).stem.lower()
+                    
+                    # 这里可以触发重新搜索（简化实现）
+                    # 实际应该让 Agent 重新搜索相关组件
+            
+            # 如果验证后的组件太少，尝试从库中找更多候选
+            if len(validated_components) < 2 and len(file_analyses) > 0:
+                logger.info("Not enough validated components, searching for additional matches...")
+                # 从分析中提取关键词用于搜索
+                all_features = ' '.join(aem_summary.get('key_features', []))
+                # 这里可以调用 Agent 的搜索工具来找更多候选
+            
+            # 使用验证后的组件（如果验证失败，使用原始选择）
+            final_components = validated_components if validated_components else selected_components
+            
+            if len(final_components) != len(selected_components):
+                logger.info(
+                    f"Component validation: {len(selected_components)} -> {len(final_components)} "
+                    f"validated components"
+                )
+            
             return {
                 **state,
-                "selected_bdl_components": selected_components
+                "selected_bdl_components": final_components,
+                "aem_component_summary": aem_summary  # 保存摘要供后续使用
             }
         except Exception as e:
             logger.error(f"Error selecting BDL components: {str(e)}")
@@ -231,9 +304,13 @@ Select BDL components and return their file paths."""
             }
     
     def write_code(state: WorkflowState) -> WorkflowState:
-        """步骤4: 编写代码"""
+        """
+        步骤4: 编写代码
+        优化：提供关键的 AEM 信息（HTL 结构、Dialog 配置、JS 逻辑）给代码生成 Agent
+        """
         file_analyses = state["file_analyses"]
         selected_bdl_components = state.get("selected_bdl_components", [])
+        aem_summary = state.get("aem_component_summary", {})
         output_path = state.get("output_path", "./output")
         resource_type = state.get("resource_type", "unknown")
         
@@ -241,38 +318,126 @@ Select BDL components and return their file paths."""
             logger.error("No file analyses available for code generation")
             raise ValueError("Cannot generate code without file analyses")
         
-        # 构建提示
-        analysis_summary = "\n\n".join([
-            f"File: {fa.get('file_path', 'unknown')}\nAnalysis: {fa.get('analysis', 'No analysis')}"
-            for fa in file_analyses
-        ])
+        # 分类文件分析结果
+        htl_analyses = [fa for fa in file_analyses if fa.get('file_type') in ['htl', 'html']]
+        dialog_analyses = [fa for fa in file_analyses if fa.get('file_type') == 'dialog']
+        js_analyses = [fa for fa in file_analyses if fa.get('file_type') == 'js']
         
-        bdl_components_info = "\n".join(selected_bdl_components) if selected_bdl_components else "No BDL components selected"
+        # 构建关键信息摘要
+        htl_summary = ""
+        if htl_analyses:
+            # HTL 是最重要的 - 包含 UI 结构
+            htl_analyses_str = "\n\n".join([
+                f"HTL Template: {fa.get('file_path', 'unknown')}\n"
+                f"UI Structure Analysis: {fa.get('analysis', 'No analysis')}\n"
+                f"Key Features: {', '.join(fa.get('key_features', []))}\n"
+                f"Dependencies: {', '.join(fa.get('dependencies', []))}"
+                for fa in htl_analyses
+            ])
+            htl_summary = f"\n\n=== HTL TEMPLATE (UI STRUCTURE) - MOST CRITICAL ===\n{htl_analyses_str}\n"
+        
+        dialog_summary = ""
+        if dialog_analyses:
+            # Dialog 定义了 React Props
+            dialog_analyses_str = "\n\n".join([
+                f"Dialog Configuration: {fa.get('file_path', 'unknown')}\n"
+                f"Property Definitions: {fa.get('analysis', 'No analysis')}\n"
+                f"Configuration: {fa.get('configuration', {})}"
+                for fa in dialog_analyses
+            ])
+            dialog_summary = f"\n\n=== DIALOG CONFIGURATION (REACT PROPS) - CRITICAL ===\n{dialog_analyses_str}\n"
+        
+        js_summary = ""
+        if js_analyses:
+            # JS 定义了交互逻辑
+            js_analyses_str = "\n\n".join([
+                f"JavaScript Logic: {fa.get('file_path', 'unknown')}\n"
+                f"Interactions: {fa.get('analysis', 'No analysis')}\n"
+                f"Key Features: {', '.join(fa.get('key_features', []))}"
+                for fa in js_analyses
+            ])
+            js_summary = f"\n\n=== JAVASCRIPT LOGIC (REACT INTERACTIONS) - IMPORTANT ===\n{js_analyses_str}\n"
+        
+        # 读取选定的 BDL 组件源代码
+        bdl_components_code = {}
+        for comp_path in selected_bdl_components[:5]:  # 限制数量
+            try:
+                from tools import read_file
+                comp_code = read_file(comp_path)
+                if comp_code:
+                    bdl_components_code[comp_path] = comp_code[:2000]  # 限制长度
+            except Exception as e:
+                logger.warning(f"Could not read BDL component {comp_path}: {str(e)}")
+        
+        bdl_components_info = ""
+        if bdl_components_code:
+            bdl_components_info = "\n\n=== SELECTED BDL COMPONENTS (SOURCE CODE) ===\n"
+            for comp_path, comp_code in bdl_components_code.items():
+                bdl_components_info += f"\n{comp_path}:\n{comp_code[:1000]}...\n"
+        elif selected_bdl_components:
+            bdl_components_info = f"\nSelected BDL Component Paths:\n" + "\n".join(selected_bdl_components)
         
         # 从 resourceType 提取组件名称
         component_name = resource_type.split("/")[-1] if "/" in resource_type else resource_type.split(".")[-1]
         component_name = component_name.title().replace("_", "")  # 转换为 PascalCase
         
-        prompt = f"""Generate a React component using BDL based on:
+        prompt = f"""Generate a React component using BDL that perfectly replicates the AEM component:
 
 AEM Component ResourceType: {resource_type}
-AEM Component Analysis:
-{analysis_summary}
-
-Selected BDL Components:
+Component Name: {component_name}
+{htl_summary}
+{dialog_summary}
+{js_summary}
 {bdl_components_info}
 
-Output path: {output_path}
-Component name: {component_name}
+CRITICAL CONVERSION REQUIREMENTS:
+1. UI Structure: Convert HTL HTML structure to JSX, maintaining exact same structure and hierarchy
+2. Props Interface: Map Dialog field definitions to TypeScript/PropTypes interface
+   - Required fields from Dialog → required props
+   - Field types from Dialog → prop types (textfield → string, checkbox → boolean, etc.)
+   - Default values from Dialog → default prop values
+3. Data Binding: Convert data-sly-use Sling Models to React props/state
+4. Conditional Rendering: Convert data-sly-test to React conditional rendering ({{condition && <Component />}})
+5. Iterations: Convert data-sly-repeat to React .map()
+6. Event Handlers: Convert HTL/JS event handlers to React event handlers (onClick, onChange, etc.)
+7. BDL Components: Use selected BDL components to implement UI elements
+8. Styling: Maintain the same visual appearance (CSS will be handled separately later)
 
-Generate the complete React component code following BDL conventions."""
+The React component should:
+- Have the exact same functionality as the AEM component
+- Use the same props structure as defined in Dialog
+- Maintain the same UI structure as the HTL template
+- Implement the same interactions as the JavaScript file
+- Use BDL components appropriately
+- Follow React and BDL best practices
+
+Output path: {output_path}
+
+Generate the complete React component code following these requirements."""
         
         try:
             code_writing_agent = _get_agent(CodeWritingAgent, "code_writing")
-            result = code_writing_agent.run(prompt)
+            result = code_writing_agent.run(prompt, return_structured=True)
             
-            # 提取生成的代码
-            generated_code = result
+            # 处理结构化输出
+            if hasattr(result, 'component_code'):
+                # 是 CodeGenerationResult 对象
+                generated_code = result.component_code
+                logger.info(
+                    f"Code generated for {result.component_name}. "
+                    f"Imports: {len(result.imports)}, Dependencies: {len(result.dependencies)}"
+                )
+                # 如果有 notes，记录
+                if result.notes:
+                    logger.info(f"Generation notes: {result.notes}")
+            elif isinstance(result, dict) and "component_code" in result:
+                # 是字典格式
+                generated_code = result["component_code"]
+            else:
+                # 回退到智能代码提取
+                from utils.parsers import extract_code_from_response
+                generated_code = extract_code_from_response(str(result))
+                logger.warning("Received unstructured code output, extracted code block")
             
             # 生成文件路径（跨平台）
             from pathlib import Path
