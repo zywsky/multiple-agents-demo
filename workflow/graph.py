@@ -381,39 +381,141 @@ Select BDL components and return their file paths."""
         component_name = resource_type.split("/")[-1] if "/" in resource_type else resource_type.split(".")[-1]
         component_name = component_name.title().replace("_", "")  # 转换为 PascalCase
         
+        # 构建文件上下文说明（帮助 LLM 理解每个文件的作用）
+        from utils.file_context_builder import build_file_context
+        
+        file_contexts_section = "\n\n=== FILE ROLES AND CONTEXTS ===\n"
+        file_contexts_section += "Each AEM file serves a specific purpose. Here's what each file provides:\n\n"
+        
+        for analysis in file_analyses:
+            file_type = analysis.get('file_type', 'unknown')
+            if file_type in ['htl', 'html', 'dialog', 'js']:  # 只包含关键文件
+                context = build_file_context(analysis)
+                file_contexts_section += context + "\n"
+        
+        # 评估信息充分性
+        has_htl = len(htl_analyses) > 0
+        has_dialog = len(dialog_analyses) > 0
+        has_js = len(js_analyses) > 0
+        
+        completeness_note = ""
+        if not has_htl:
+            completeness_note = "\n⚠️ WARNING: Missing HTL template - cannot determine UI structure accurately.\n"
+        elif not has_dialog:
+            completeness_note = "\n⚠️ WARNING: Missing Dialog configuration - cannot determine Props interface accurately.\n"
+        elif has_htl and has_dialog and has_js:
+            completeness_note = "\n✓ COMPLETE INFORMATION: HTL + Dialog + JS provide complete information for accurate React conversion.\n"
+        elif has_htl and has_dialog:
+            completeness_note = "\n✓ SUFFICIENT INFORMATION: HTL + Dialog provide enough information for basic React conversion.\n"
+        
         prompt = f"""Generate a React component using BDL that perfectly replicates the AEM component:
 
 AEM Component ResourceType: {resource_type}
 Component Name: {component_name}
+{completeness_note}
+{file_contexts_section}
+=== AEM COMPONENT SOURCE CODE ===
+
 {htl_summary}
 {dialog_summary}
 {js_summary}
+
+=== SELECTED BDL COMPONENTS ===
 {bdl_components_info}
 
-CRITICAL CONVERSION REQUIREMENTS:
-1. UI Structure: Convert HTL HTML structure to JSX, maintaining exact same structure and hierarchy
-2. Props Interface: Map Dialog field definitions to TypeScript/PropTypes interface
-   - Required fields from Dialog → required props
-   - Field types from Dialog → prop types (textfield → string, checkbox → boolean, etc.)
-   - Default values from Dialog → default prop values
-3. Data Binding: Convert data-sly-use Sling Models to React props/state
-4. Conditional Rendering: Convert data-sly-test to React conditional rendering ({{condition && <Component />}})
-5. Iterations: Convert data-sly-repeat to React .map()
-6. Event Handlers: Convert HTL/JS event handlers to React event handlers (onClick, onChange, etc.)
-7. BDL Components: Use selected BDL components to implement UI elements
-8. Styling: Maintain the same visual appearance (CSS will be handled separately later)
+=== CRITICAL CONVERSION REQUIREMENTS ===
 
-The React component should:
-- Have the exact same functionality as the AEM component
-- Use the same props structure as defined in Dialog
-- Maintain the same UI structure as the HTL template
-- Implement the same interactions as the JavaScript file
-- Use BDL components appropriately
-- Follow React and BDL best practices
+1. UI Structure (from HTL Template):
+   - Convert HTL HTML structure to JSX, maintaining EXACT same structure and hierarchy
+   - Preserve all HTML elements and their nesting
+   - Keep all semantic HTML elements (header, nav, main, section, article, footer, etc.)
+   - Map data-sly-resource to appropriate component composition
+
+2. Props Interface (from Dialog Configuration):
+   - Each Dialog field → React prop
+   - Required fields → required props (use PropTypes.required or TypeScript required)
+   - Field types mapping:
+     * textfield → string
+     * textarea → string  
+     * select → enum/string
+     * checkbox → boolean
+     * numberfield → number
+     * pathfield → string (path)
+     * datepicker → Date or string (ISO format)
+   - Default values from Dialog → default prop values
+   - Field labels → JSDoc comments for props
+
+3. Data Binding (from HTL data-sly-use):
+   - data-sly-use.model → React props (data comes from parent or API)
+   - model.property → props.property or state.property
+   - If model is used for calculations → useMemo or derived state
+   - Sling Model structure → TypeScript interface or PropTypes
+
+4. Conditional Rendering (from HTL data-sly-test):
+   - data-sly-test="{{condition}}" → {{condition && <Component />}}
+   - data-sly-test="{{!condition}}" → {{!condition && <Component />}}
+   - Complex conditions → extract to variables for readability
+
+5. Iterations (from HTL data-sly-repeat):
+   - data-sly-repeat="{{items}}" → items.map((item, index) => (...))
+   - Preserve item context and index
+   - Map item properties correctly
+
+6. Event Handlers (from HTL/JS):
+   - onclick="function()" → onClick={{handleClick}}
+   - onchange="function()" → onChange={{handleChange}}
+   - Extract event handlers from JS file and convert to React handlers
+   - Use useState for form inputs, useCallback for memoization if needed
+
+7. BDL Component Usage:
+   - Map AEM UI elements to BDL components based on selected components
+   - Use BDL component APIs correctly (check component source code provided)
+   - Maintain BDL component prop patterns
+   - Follow BDL composition patterns
+
+8. Component Composition (from data-sly-resource):
+   - data-sly-resource="{{component}}" → <ComponentName />
+   - Map AEM component paths to React component imports
+   - Pass appropriate props to child components
+
+9. Styling:
+   - Note: CSS will be handled separately later
+   - Use BDL's styling approach (sx prop, styled-components, or CSS modules)
+   - Preserve responsive behavior if mentioned in HTL/JS
+
+=== CONVERSION EXAMPLE (Reference) ===
+
+AEM HTL:
+  <button data-sly-test="{{model.showButton}}" 
+          data-sly-attribute.onclick="{{model.onClick}}">
+    {{model.text}}
+  </button>
+
+React Equivalent:
+  {{props.showButton && (
+    <Button onClick={{props.onClick || handleClick}}>
+      {{props.text}}
+    </Button>
+  )}}
+
+=== FINAL REQUIREMENTS ===
+
+The React component MUST:
+✓ Have EXACT same functionality as the AEM component
+✓ Use the SAME props structure as defined in Dialog
+✓ Maintain the SAME UI structure as the HTL template  
+✓ Implement the SAME interactions as the JavaScript file
+✓ Use BDL components appropriately (based on selected components)
+✓ Follow React best practices (hooks, functional components, proper state management)
+✓ Follow BDL best practices (component API, styling patterns, composition)
+✓ Include proper TypeScript/PropTypes definitions
+✓ Include JSDoc comments for props (from Dialog field labels)
+✓ Handle edge cases (null checks, default values, etc.)
+✓ Be production-ready code
 
 Output path: {output_path}
 
-Generate the complete React component code following these requirements."""
+Generate the complete React component code following ALL these requirements."""
         
         try:
             code_writing_agent = _get_agent(CodeWritingAgent, "code_writing")
@@ -457,15 +559,41 @@ Generate the complete React component code following these requirements."""
             raise
     
     def review_code(state: WorkflowState) -> WorkflowState:
-        """步骤5: 审查代码（使用 subagents）"""
+        """
+        步骤5: 审查代码（使用 subagents）
+        优化：提供迭代上下文，确保 review 知道这是第几次迭代
+        """
         code_file_path = state["code_file_path"]
         generated_code = state["generated_code"]
         output_path = state.get("output_path", "./output")
         iteration = state.get("iteration_count", 0)
+        previous_review_results = state.get("review_results", {})
         
         logger.info(f"Reviewing code (iteration {iteration})...")
         
-        # 先写入代码文件（如果还没有）
+        # 构建迭代上下文
+        iteration_context = ""
+        if iteration == 0:
+            iteration_context = "\n=== INITIAL CODE REVIEW ===\nThis is the first review of the generated code."
+        else:
+            iteration_context = f"""
+=== ITERATION {iteration} CODE REVIEW ===
+This is review iteration {iteration} (after {iteration} correction(s)).
+Previous review found issues that should now be fixed.
+
+Previous Review Summary:
+- Security: {previous_review_results.get('security', {}).get('passed', False) and 'PASSED' or 'FAILED'} 
+  ({len(previous_review_results.get('security', {}).get('issues', []))} issues)
+- Build: {previous_review_results.get('build', {}).get('passed', False) and 'PASSED' or 'FAILED'}
+  ({len(previous_review_results.get('build', {}).get('issues', []))} issues)
+- BDL: {previous_review_results.get('bdl', {}).get('passed', False) and 'PASSED' or 'FAILED'}
+  ({len(previous_review_results.get('bdl', {}).get('issues', []))} issues)
+
+Please review the corrected code to verify that previous issues have been resolved.
+If issues persist or new issues are found, document them clearly.
+"""
+        
+        # 先写入代码文件（确保文件存在）
         if generated_code:
             try:
                 from tools import write_file
@@ -486,7 +614,15 @@ Generate the complete React component code following these requirements."""
         
         try:
             logger.info("Running security review...")
-            security_prompt = f"Review this React code for security issues:\n\n{generated_code}"
+            security_prompt = f"""{iteration_context}
+
+Review this React code for security issues:
+
+Code file: {code_file_path}
+React Code:
+{generated_code}
+
+Please provide a thorough security review focusing on all security vulnerabilities."""
             security_result_obj = security_review_agent.run(security_prompt, return_structured=True)
         except Exception as e:
             logger.error(f"Error in security review: {str(e)}")
@@ -494,7 +630,17 @@ Generate the complete React component code following these requirements."""
         
         try:
             logger.info("Running build review...")
-            build_prompt = f"Review this React code for build errors:\n\nCode file: {code_file_path}\nWorking directory: {output_path}"
+            build_prompt = f"""{iteration_context}
+
+Review this React code for build errors and code quality:
+
+Code file: {code_file_path}
+Working directory: {output_path}
+React Code:
+{generated_code}
+
+Please check for compilation errors, syntax issues, missing dependencies, and code quality problems.
+If a build command can be run, use it to verify compilation."""
             build_result_obj = build_review_agent.run(build_prompt, return_structured=True)
         except Exception as e:
             logger.error(f"Error in build review: {str(e)}")
@@ -502,7 +648,15 @@ Generate the complete React component code following these requirements."""
         
         try:
             logger.info("Running BDL review...")
-            bdl_prompt = f"Review this React code for BDL best practices:\n\n{generated_code}"
+            bdl_prompt = f"""{iteration_context}
+
+Review this React code for BDL best practices and compliance:
+
+Code file: {code_file_path}
+React Code:
+{generated_code}
+
+Please verify BDL component usage, styling approach, and compliance with BDL conventions."""
             bdl_result_obj = bdl_review_agent.run(bdl_prompt, return_structured=True)
         except Exception as e:
             logger.error(f"Error in BDL review: {str(e)}")
@@ -562,40 +716,188 @@ Generate the complete React component code following these requirements."""
         }
     
     def correct_code(state: WorkflowState) -> WorkflowState:
-        """步骤6: 修正代码"""
+        """
+        步骤6: 修正代码
+        优化：提供完整的 review 结果上下文，包括所有问题和建议，以及迭代历史
+        """
         code_file_path = state["code_file_path"]
         generated_code = state["generated_code"]
         review_results = state["review_results"]
+        iteration = state.get("iteration_count", 0)
         
-        prompt = f"""Correct the following code based on review results:
+        # 构建详细的 review 结果摘要
+        security_data = review_results.get('security', {})
+        build_data = review_results.get('build', {})
+        bdl_data = review_results.get('bdl', {})
+        
+        security_issues = security_data.get('issues', [])
+        security_recommendations = security_data.get('recommendations', [])
+        security_severity = security_data.get('severity', 'unknown')
+        
+        build_issues = build_data.get('issues', [])
+        build_recommendations = build_data.get('recommendations', [])
+        build_errors = build_data.get('errors', [])
+        build_warnings = build_data.get('warnings', [])
+        build_status = build_data.get('build_status', 'unknown')
+        
+        bdl_issues = bdl_data.get('issues', [])
+        bdl_recommendations = bdl_data.get('recommendations', [])
+        bdl_compliance_issues = bdl_data.get('compliance_issues', [])
+        bdl_api_issues = bdl_data.get('api_usage_issues', [])
+        
+        # 构建完整的 review 结果提示
+        review_summary = f"""
+=== CODE CORRECTION REQUEST ===
+Iteration: {iteration + 1}
+Code File: {code_file_path}
 
-Original Code:
+=== CURRENT CODE TO CORRECT ===
 {generated_code}
 
-Review Results:
-Security: {review_results.get('security', {}).get('details', 'N/A')}
-  Issues: {len(review_results.get('security', {}).get('issues', []))}
-  Passed: {review_results.get('security', {}).get('passed', False)}
-Build: {review_results.get('build', {}).get('details', 'N/A')}
-  Issues: {len(review_results.get('build', {}).get('issues', []))}
-  Passed: {review_results.get('build', {}).get('passed', False)}
-BDL: {review_results.get('bdl', {}).get('details', 'N/A')}
-  Issues: {len(review_results.get('bdl', {}).get('issues', []))}
-  Passed: {review_results.get('bdl', {}).get('passed', False)}
+=== REVIEW RESULTS - ALL ISSUES TO FIX ===
 
-Fix all issues and provide the corrected code."""
+1. SECURITY REVIEW:
+   Status: {'PASSED' if security_data.get('passed', False) else 'FAILED'}
+   Severity: {security_severity}
+   
+   Issues Found ({len(security_issues)}):
+"""
+        for i, issue in enumerate(security_issues, 1):
+            review_summary += f"   {i}. {issue}\n"
         
-        correct_agent = _get_agent(CorrectAgent, "correct")
-        result = correct_agent.run(prompt)
+        review_summary += f"""
+   Recommendations ({len(security_recommendations)}):
+"""
+        for i, rec in enumerate(security_recommendations, 1):
+            review_summary += f"   {i}. {rec}\n"
         
-        # 更新生成的代码
-        corrected_code = result
+        review_summary += f"""
+   Full Details: {security_data.get('details', 'N/A')}
+
+2. BUILD REVIEW:
+   Status: {'PASSED' if build_data.get('passed', False) else 'FAILED'}
+   Build Status: {build_status}
+   
+   Errors Found ({len(build_errors)}):
+"""
+        for i, error in enumerate(build_errors, 1):
+            review_summary += f"   {i}. {error}\n"
         
-        return {
-            **state,
-            "generated_code": corrected_code,
-            "iteration_count": state.get("iteration_count", 0) + 1
-        }
+        review_summary += f"""
+   Warnings ({len(build_warnings)}):
+"""
+        for i, warning in enumerate(build_warnings, 1):
+            review_summary += f"   {i}. {warning}\n"
+        
+        review_summary += f"""
+   Other Issues ({len(build_issues)}):
+"""
+        for i, issue in enumerate(build_issues, 1):
+            review_summary += f"   {i}. {issue}\n"
+        
+        review_summary += f"""
+   Recommendations ({len(build_recommendations)}):
+"""
+        for i, rec in enumerate(build_recommendations, 1):
+            review_summary += f"   {i}. {rec}\n"
+        
+        review_summary += f"""
+   Full Details: {build_data.get('details', 'N/A')}
+
+3. BDL REVIEW:
+   Status: {'PASSED' if bdl_data.get('passed', False) else 'FAILED'}
+   
+   Compliance Issues ({len(bdl_compliance_issues)}):
+"""
+        for i, issue in enumerate(bdl_compliance_issues, 1):
+            review_summary += f"   {i}. {issue}\n"
+        
+        review_summary += f"""
+   API Usage Issues ({len(bdl_api_issues)}):
+"""
+        for i, issue in enumerate(bdl_api_issues, 1):
+            review_summary += f"   {i}. {issue}\n"
+        
+        review_summary += f"""
+   Other Issues ({len(bdl_issues)}):
+"""
+        for i, issue in enumerate(bdl_issues, 1):
+            review_summary += f"   {i}. {issue}\n"
+        
+        review_summary += f"""
+   Recommendations ({len(bdl_recommendations)}):
+"""
+        for i, rec in enumerate(bdl_recommendations, 1):
+            review_summary += f"   {i}. {rec}\n"
+        
+        review_summary += f"""
+   Full Details: {bdl_data.get('details', 'N/A')}
+
+=== CORRECTION REQUIREMENTS ===
+
+CRITICAL PRIORITY (Must Fix):
+- Build errors (must compile successfully)
+- Critical security vulnerabilities
+- High severity security issues
+
+HIGH PRIORITY (Should Fix):
+- Security vulnerabilities (all severities)
+- Build warnings
+- BDL compliance issues
+
+MEDIUM PRIORITY (Nice to Fix):
+- Code quality improvements
+- BDL best practice improvements
+- Performance optimizations
+
+IMPORTANT NOTES:
+- Fix ALL issues mentioned above
+- Prioritize critical and high-severity issues first
+- Ensure the corrected code COMPILES without errors
+- Maintain ALL original functionality
+- Follow recommendations provided by each review agent
+- If this is iteration {iteration + 1}, ensure previous fixes are not reverted
+
+Provide the COMPLETE corrected code, not just changes."""
+        
+        prompt = review_summary
+        
+        try:
+            correct_agent = _get_agent(CorrectAgent, "correct")
+            result = correct_agent.run(prompt)
+            
+            # 提取修正后的代码（可能包含代码块）
+            corrected_code = result
+            
+            # 尝试从结果中提取代码块（如果 LLM 返回了代码块）
+            if "```" in corrected_code:
+                from utils.parsers import extract_code_from_response
+                corrected_code = extract_code_from_response(corrected_code)
+            
+            logger.info(f"Code corrected (iteration {iteration + 1}). Code length: {len(corrected_code)} chars")
+            
+            # 立即写入修正后的代码，确保 review 能读取最新版本
+            try:
+                from tools import write_file
+                write_file(code_file_path, corrected_code)
+                logger.info(f"Corrected code written to: {code_file_path}")
+            except Exception as e:
+                logger.warning(f"Could not write corrected code to file: {str(e)}")
+            
+            return {
+                **state,
+                "generated_code": corrected_code,
+                "iteration_count": iteration + 1,
+                # 保留 review_results 以便下次 review 时比较
+            }
+        except Exception as e:
+            logger.error(f"Error correcting code: {str(e)}")
+            # 即使修正失败，也增加迭代计数，避免无限循环
+            return {
+                **state,
+                "iteration_count": iteration + 1,
+                # generated_code 保持不变，下次 review 会发现问题依旧
+            }
     
     def should_continue(state: WorkflowState) -> str:
         """决定是否继续修正循环"""
