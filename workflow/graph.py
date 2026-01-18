@@ -19,6 +19,14 @@ from agents import (
     SecurityReviewAgent,
     BuildReviewAgent,
     BDLReviewAgent,
+    BuildExecutionReviewAgent,
+    BDLComponentUsageReviewAgent,
+    CSSImportReviewAgent,
+    ComponentReferenceReviewAgent,
+    ComponentCompletenessReviewAgent,
+    PropsConsistencyReviewAgent,
+    StyleConsistencyReviewAgent,
+    FunctionalityConsistencyReviewAgent,
     CorrectAgent
 )
 # FileCollectionAgent 已移除，直接使用工具函数
@@ -1235,6 +1243,20 @@ Follow all conversion requirements above."""
                 
                 logger.warning("Received unstructured code output, using improved code extraction")
             
+            # 清理代码（移除markdown代码块标记）
+            import re
+            # 移除开头的```jsx或```tsx等标记
+            generated_code = re.sub(r'^```(?:jsx|tsx|javascript|typescript|js|ts)?\s*\n', '', generated_code, flags=re.MULTILINE)
+            # 移除结尾的```标记
+            generated_code = re.sub(r'\n```\s*$', '', generated_code, flags=re.MULTILINE)
+            generated_code = generated_code.strip()
+            
+            # 清理CSS代码（移除markdown代码块标记）
+            if generated_css:
+                generated_css = re.sub(r'^```(?:css|scss|sass)?\s*\n', '', generated_css, flags=re.MULTILINE)
+                generated_css = re.sub(r'\n```\s*$', '', generated_css, flags=re.MULTILINE)
+                generated_css = generated_css.strip()
+            
             # 验证生成的代码基本质量
             from utils.code_validator import validate_react_code
             is_valid, warnings, errors = validate_react_code(generated_code)
@@ -1302,7 +1324,8 @@ Follow all conversion requirements above."""
                 **state,
                 "generated_code": generated_code,
                 "code_file_path": code_file_path,
-                "css_file_path": css_file_path  # 添加CSS文件路径到状态
+                "css_file_path": css_file_path,  # 添加CSS文件路径到状态
+                "css_summary": css_summary  # 保存CSS摘要供review使用
             }
         except Exception as e:
             logger.error(f"Error generating code: {str(e)}")
@@ -1312,12 +1335,19 @@ Follow all conversion requirements above."""
         """
         步骤5: 审查代码（使用 subagents）
         优化：提供迭代上下文，确保 review 知道这是第几次迭代
+        提供所有必要的数据给各个review agents
         """
         code_file_path = state["code_file_path"]
         generated_code = state["generated_code"]
         output_path = state.get("output_path", "./output")
         iteration = state.get("iteration_count", 0)
         previous_review_results = state.get("review_results", {})
+        css_file_path = state.get("css_file_path", "")
+        selected_bdl_components = state.get("selected_bdl_components", [])
+        file_analyses = state.get("file_analyses", [])
+        dependency_tree = state.get("dependency_tree", {})
+        css_summary = state.get("css_summary", {})
+        aem_component_summary = state.get("aem_component_summary", {})
         
         logger.info(f"Reviewing code (iteration {iteration})...")
         
@@ -1443,6 +1473,185 @@ Please verify BDL component usage, styling approach, and compliance with BDL con
             logger.error(f"Error in BDL review: {str(e)}")
             bdl_result_obj = None
         
+        # 运行新的9个review agents
+        # 初始化所有新的review agents
+        build_execution_review_agent = _get_agent(BuildExecutionReviewAgent, "build_execution_review")
+        bdl_component_usage_review_agent = _get_agent(BDLComponentUsageReviewAgent, "bdl_component_usage_review")
+        css_import_review_agent = _get_agent(CSSImportReviewAgent, "css_import_review")
+        component_reference_review_agent = _get_agent(ComponentReferenceReviewAgent, "component_reference_review")
+        component_completeness_review_agent = _get_agent(ComponentCompletenessReviewAgent, "component_completeness_review")
+        props_consistency_review_agent = _get_agent(PropsConsistencyReviewAgent, "props_consistency_review")
+        style_consistency_review_agent = _get_agent(StyleConsistencyReviewAgent, "style_consistency_review")
+        functionality_consistency_review_agent = _get_agent(FunctionalityConsistencyReviewAgent, "functionality_consistency_review")
+        
+        # 初始化结果对象
+        build_execution_result_obj = None
+        bdl_component_usage_result_obj = None
+        css_import_result_obj = None
+        component_reference_result_obj = None
+        component_completeness_result_obj = None
+        props_consistency_result_obj = None
+        style_consistency_result_obj = None
+        functionality_consistency_result_obj = None
+        
+        # 运行BuildExecutionReviewAgent
+        try:
+            logger.info("Running build execution review...")
+            build_execution_prompt = f"""{iteration_context}
+
+Review this React code for build execution:
+
+Code file: {code_file_path}
+Working directory: {output_path}
+React Code:
+{generated_code}
+
+Please execute npm run build and verify the build succeeds without errors."""
+            build_execution_result_obj = build_execution_review_agent.run(build_execution_prompt, return_structured=True)
+        except Exception as e:
+            logger.error(f"Error in build execution review: {str(e)}")
+            build_execution_result_obj = None
+        
+        # 运行BDLComponentUsageReviewAgent
+        try:
+            logger.info("Running BDL component usage review...")
+            # 安全地提取BDL组件路径
+            bdl_component_paths = []
+            for comp in selected_bdl_components:
+                if isinstance(comp, dict):
+                    bdl_component_paths.append(comp.get('path', ''))
+                elif isinstance(comp, str):
+                    bdl_component_paths.append(comp)
+                else:
+                    bdl_component_paths.append(str(comp))
+            
+            bdl_component_usage_prompt = f"""{iteration_context}
+
+Review this React code for BDL component usage:
+
+Code file: {code_file_path}
+React Code:
+{generated_code}
+Selected BDL Components: {bdl_component_paths}
+
+Please verify that BDL components are used correctly with valid properties."""
+            bdl_component_usage_result_obj = bdl_component_usage_review_agent.run(bdl_component_usage_prompt, return_structured=True)
+        except Exception as e:
+            logger.error(f"Error in BDL component usage review: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            bdl_component_usage_result_obj = None
+        
+        # 运行CSSImportReviewAgent
+        try:
+            logger.info("Running CSS import review...")
+            css_import_prompt = f"""{iteration_context}
+
+Review this React code for CSS import:
+
+Code file: {code_file_path}
+CSS file: {css_file_path}
+React Code:
+{generated_code}
+CSS Summary: {css_summary}
+
+Please verify that CSS is correctly imported and used."""
+            css_import_result_obj = css_import_review_agent.run(css_import_prompt, return_structured=True)
+        except Exception as e:
+            logger.error(f"Error in CSS import review: {str(e)}")
+            css_import_result_obj = None
+        
+        # 运行ComponentReferenceReviewAgent
+        try:
+            logger.info("Running component reference review...")
+            component_reference_prompt = f"""{iteration_context}
+
+Review this React code for component references:
+
+Code file: {code_file_path}
+React Code:
+{generated_code}
+Dependency Tree: {dependency_tree}
+
+Please verify that component references are correct."""
+            component_reference_result_obj = component_reference_review_agent.run(component_reference_prompt, return_structured=True)
+        except Exception as e:
+            logger.error(f"Error in component reference review: {str(e)}")
+            component_reference_result_obj = None
+        
+        # 运行ComponentCompletenessReviewAgent
+        try:
+            logger.info("Running component completeness review...")
+            component_completeness_prompt = f"""{iteration_context}
+
+Review this React code for completeness:
+
+Code file: {code_file_path}
+React Code:
+{generated_code}
+AEM Component Summary: {aem_component_summary}
+
+Please verify that all parts of the component are complete."""
+            component_completeness_result_obj = component_completeness_review_agent.run(component_completeness_prompt, return_structured=True)
+        except Exception as e:
+            logger.error(f"Error in component completeness review: {str(e)}")
+            component_completeness_result_obj = None
+        
+        # 运行PropsConsistencyReviewAgent
+        try:
+            logger.info("Running props consistency review...")
+            props_consistency_prompt = f"""{iteration_context}
+
+Review this React code for props consistency:
+
+Code file: {code_file_path}
+React Code:
+{generated_code}
+AEM Component Summary: {aem_component_summary}
+
+Please verify that props are consistent with AEM Dialog and Java model."""
+            props_consistency_result_obj = props_consistency_review_agent.run(props_consistency_prompt, return_structured=True)
+        except Exception as e:
+            logger.error(f"Error in props consistency review: {str(e)}")
+            props_consistency_result_obj = None
+        
+        # 运行StyleConsistencyReviewAgent
+        try:
+            logger.info("Running style consistency review...")
+            style_consistency_prompt = f"""{iteration_context}
+
+Review this React code for style consistency:
+
+Code file: {code_file_path}
+CSS file: {css_file_path}
+React Code:
+{generated_code}
+CSS Summary: {css_summary}
+
+Please verify that styles are consistent with AEM CSS."""
+            style_consistency_result_obj = style_consistency_review_agent.run(style_consistency_prompt, return_structured=True)
+        except Exception as e:
+            logger.error(f"Error in style consistency review: {str(e)}")
+            style_consistency_result_obj = None
+        
+        # 运行FunctionalityConsistencyReviewAgent
+        try:
+            logger.info("Running functionality consistency review...")
+            functionality_consistency_prompt = f"""{iteration_context}
+
+Review this React code for functionality consistency:
+
+Code file: {code_file_path}
+React Code:
+{generated_code}
+File Analyses: {file_analyses}
+
+Please verify that functionality is consistent with AEM JavaScript."""
+            functionality_consistency_result_obj = functionality_consistency_review_agent.run(functionality_consistency_prompt, return_structured=True)
+        except Exception as e:
+            logger.error(f"Error in functionality consistency review: {str(e)}")
+            functionality_consistency_result_obj = None
+        
         # 处理结构化结果
         def extract_review_data(review_obj, default_text="Review failed"):
             """从结构化 review 结果中提取数据"""
@@ -1465,28 +1674,98 @@ Please verify BDL component usage, styling approach, and compliance with BDL con
                     "details": str(review_obj) if review_obj else default_text
                 }
         
+        # 提取所有review结果
         security_data = extract_review_data(security_result_obj, "Security review failed")
+        build_execution_data = extract_review_data(build_execution_result_obj, "Build execution review failed")
+        bdl_component_usage_data = extract_review_data(bdl_component_usage_result_obj, "BDL component usage review failed")
+        css_import_data = extract_review_data(css_import_result_obj, "CSS import review failed")
+        component_reference_data = extract_review_data(component_reference_result_obj, "Component reference review failed")
+        component_completeness_data = extract_review_data(component_completeness_result_obj, "Component completeness review failed")
+        props_consistency_data = extract_review_data(props_consistency_result_obj, "Props consistency review failed")
+        style_consistency_data = extract_review_data(style_consistency_result_obj, "Style consistency review failed")
+        functionality_consistency_data = extract_review_data(functionality_consistency_result_obj, "Functionality consistency review failed")
+        
+        # 保留原有agents的结果（向后兼容）
         build_data = extract_review_data(build_result_obj, "Build review failed")
         bdl_data = extract_review_data(bdl_result_obj, "BDL review failed")
         
-        # 汇总 review 结果（保留原始对象和提取的数据）
+        # 汇总所有 review 结果（保留原始对象和提取的数据）
         review_results = {
+            # 核心检查（必须）
             "security": security_data,
+            "build_execution": build_execution_data,  # 新的：执行npm run build
+            "bdl_component_usage": bdl_component_usage_data,  # 新的：BDL属性检查
+            "css_import": css_import_data,  # 新的：CSS导入检查
+            "component_reference": component_reference_data,  # 新的：组件引用检查
+            
+            # 一致性检查（重要）
+            "component_completeness": component_completeness_data,  # 新的：完整性检查
+            "props_consistency": props_consistency_data,  # 新的：Props一致性
+            "style_consistency": style_consistency_data,  # 新的：样式一致性
+            "functionality_consistency": functionality_consistency_data,  # 新的：功能一致性
+            
+            # 保留原有结果（向后兼容）
             "build": build_data,
             "bdl": bdl_data,
+            
+            # 原始对象
             "_raw": {
                 "security": security_result_obj,
+                "build_execution": build_execution_result_obj,
+                "bdl_component_usage": bdl_component_usage_result_obj,
+                "css_import": css_import_result_obj,
+                "component_reference": component_reference_result_obj,
+                "component_completeness": component_completeness_result_obj,
+                "props_consistency": props_consistency_result_obj,
+                "style_consistency": style_consistency_result_obj,
+                "functionality_consistency": functionality_consistency_result_obj,
                 "build": build_result_obj,
                 "bdl": bdl_result_obj
             }
         }
         
         # 判断是否通过（使用结构化数据）
+        # 核心检查必须全部通过
         security_passed = security_data.get("passed", False) and security_data.get("severity") not in ["critical", "high"]
+        build_execution_passed = build_execution_data.get("passed", False) and build_execution_data.get("severity") not in ["critical", "high"]
+        bdl_component_usage_passed = bdl_component_usage_data.get("passed", False) and bdl_component_usage_data.get("severity") not in ["critical", "high"]
+        css_import_passed = css_import_data.get("passed", False) and css_import_data.get("severity") not in ["critical", "high"]
+        component_reference_passed = component_reference_data.get("passed", False) and component_reference_data.get("severity") not in ["critical", "high"]
+        
+        # 一致性检查（允许部分不通过，但会记录）
+        component_completeness_passed = component_completeness_data.get("passed", False)
+        props_consistency_passed = props_consistency_data.get("passed", False)
+        style_consistency_passed = style_consistency_data.get("passed", False)
+        functionality_consistency_passed = functionality_consistency_data.get("passed", False)
+        
+        # 保留原有检查（向后兼容）
         build_passed = build_data.get("passed", False) and build_data.get("severity") not in ["critical", "high"]
         bdl_passed = bdl_data.get("passed", False) and bdl_data.get("severity") not in ["critical", "high"]
         
-        review_passed = security_passed and build_passed and bdl_passed
+        # 核心检查必须全部通过，一致性检查作为参考
+        core_reviews_passed = (
+            security_passed and
+            build_execution_passed and
+            bdl_component_usage_passed and
+            css_import_passed and
+            component_reference_passed
+        )
+        
+        # 如果核心检查通过，但一致性检查有失败，记录警告但不阻止
+        consistency_issues = []
+        if not component_completeness_passed:
+            consistency_issues.append("component_completeness")
+        if not props_consistency_passed:
+            consistency_issues.append("props_consistency")
+        if not style_consistency_passed:
+            consistency_issues.append("style_consistency")
+        if not functionality_consistency_passed:
+            consistency_issues.append("functionality_consistency")
+        
+        if consistency_issues:
+            logger.warning(f"Consistency issues found: {', '.join(consistency_issues)}")
+        
+        review_passed = core_reviews_passed
         
         logger.info(f"Review completed. Passed: {review_passed}")
         
@@ -1507,14 +1786,81 @@ Please verify BDL component usage, styling approach, and compliance with BDL con
         iteration = state.get("iteration_count", 0)
         
         # 构建详细的 review 结果摘要
+        # 核心检查（必须）
         security_data = review_results.get('security', {})
+        build_execution_data = review_results.get('build_execution', {})
+        bdl_component_usage_data = review_results.get('bdl_component_usage', {})
+        css_import_data = review_results.get('css_import', {})
+        component_reference_data = review_results.get('component_reference', {})
+        
+        # 一致性检查（重要）
+        component_completeness_data = review_results.get('component_completeness', {})
+        props_consistency_data = review_results.get('props_consistency', {})
+        style_consistency_data = review_results.get('style_consistency', {})
+        functionality_consistency_data = review_results.get('functionality_consistency', {})
+        
+        # 保留原有结果（向后兼容）
         build_data = review_results.get('build', {})
         bdl_data = review_results.get('bdl', {})
         
+        # 提取核心检查数据
         security_issues = security_data.get('issues', [])
         security_recommendations = security_data.get('recommendations', [])
         security_severity = security_data.get('severity', 'unknown')
         
+        build_execution_issues = build_execution_data.get('issues', [])
+        build_execution_errors = build_execution_data.get('errors', [])
+        build_execution_warnings = build_execution_data.get('warnings', [])
+        build_execution_status = build_execution_data.get('build_status', 'unknown')
+        build_execution_recommendations = build_execution_data.get('recommendations', [])
+        
+        bdl_component_usage_issues = bdl_component_usage_data.get('issues', [])
+        bdl_component_usage_invalid_props = bdl_component_usage_data.get('invalid_props', [])
+        bdl_component_usage_missing_required = bdl_component_usage_data.get('missing_required_props', [])
+        bdl_component_usage_incorrect_types = bdl_component_usage_data.get('incorrect_prop_types', [])
+        bdl_component_usage_recommendations = bdl_component_usage_data.get('recommendations', [])
+        
+        css_import_issues = css_import_data.get('issues', [])
+        css_import_missing_classes = css_import_data.get('missing_css_classes', [])
+        css_import_unused_classes = css_import_data.get('unused_css_classes', [])
+        css_import_recommendations = css_import_data.get('recommendations', [])
+        
+        component_reference_issues = component_reference_data.get('issues', [])
+        component_reference_should_use = component_reference_data.get('should_use_existing', [])
+        component_reference_incorrect_imports = component_reference_data.get('incorrect_imports', [])
+        component_reference_missing_imports = component_reference_data.get('missing_imports', [])
+        component_reference_incorrect_props = component_reference_data.get('incorrect_props', [])
+        component_reference_recommendations = component_reference_data.get('recommendations', [])
+        
+        # 提取一致性检查数据
+        component_completeness_issues = component_completeness_data.get('issues', [])
+        component_completeness_missing_htl = component_completeness_data.get('missing_htl_elements', [])
+        component_completeness_missing_dialog = component_completeness_data.get('missing_dialog_fields', [])
+        component_completeness_missing_java = component_completeness_data.get('missing_java_fields', [])
+        component_completeness_score = component_completeness_data.get('completeness_score', 0.0)
+        component_completeness_recommendations = component_completeness_data.get('recommendations', [])
+        
+        props_consistency_issues = props_consistency_data.get('issues', [])
+        props_consistency_inconsistent_types = props_consistency_data.get('inconsistent_field_types', [])
+        props_consistency_inconsistent_required = props_consistency_data.get('inconsistent_required_fields', [])
+        props_consistency_inconsistent_defaults = props_consistency_data.get('inconsistent_default_values', [])
+        props_consistency_score = props_consistency_data.get('consistency_score', 0.0)
+        props_consistency_recommendations = props_consistency_data.get('recommendations', [])
+        
+        style_consistency_issues = style_consistency_data.get('issues', [])
+        style_consistency_missing_classes = style_consistency_data.get('missing_css_classes', [])
+        style_consistency_inconsistent_rules = style_consistency_data.get('inconsistent_css_rules', [])
+        style_consistency_score = style_consistency_data.get('style_consistency_score', 0.0)
+        style_consistency_recommendations = style_consistency_data.get('recommendations', [])
+        
+        functionality_consistency_issues = functionality_consistency_data.get('issues', [])
+        functionality_consistency_missing_handlers = functionality_consistency_data.get('missing_event_handlers', [])
+        functionality_consistency_missing_interactions = functionality_consistency_data.get('missing_interactions', [])
+        functionality_consistency_missing_init = functionality_consistency_data.get('missing_initialization', [])
+        functionality_consistency_score = functionality_consistency_data.get('functionality_consistency_score', 0.0)
+        functionality_consistency_recommendations = functionality_consistency_data.get('recommendations', [])
+        
+        # 保留原有数据（向后兼容）
         build_issues = build_data.get('issues', [])
         build_recommendations = build_data.get('recommendations', [])
         build_errors = build_data.get('errors', [])
@@ -1616,38 +1962,86 @@ Code File: {code_file_path}
 
 === CORRECTION REQUIREMENTS ===
 
-CRITICAL PRIORITY (Must Fix):
-- Build errors (must compile successfully)
-- Critical security vulnerabilities
-- High severity security issues
+CRITICAL PRIORITY (Must Fix - Core Reviews):
+1. Build Execution Errors (must compile successfully)
+   - Fix all compilation errors
+   - Resolve import issues
+   - Fix syntax errors
+   - Ensure npm run build succeeds
 
-HIGH PRIORITY (Should Fix):
-- Security vulnerabilities (all severities)
-- Build warnings
-- BDL compliance issues
+2. Critical Security Vulnerabilities
+   - Fix all critical and high-severity security issues
+   - Implement proper input validation
+   - Remove unsafe code patterns
+
+3. BDL Component Usage Errors
+   - Fix invalid props usage
+   - Add missing required props
+   - Fix incorrect prop types
+   - Use correct BDL component API
+
+4. CSS Import Issues
+   - Ensure CSS file exists and is imported
+   - Use CSS Modules format correctly
+   - Fix missing CSS classes
+   - Ensure className uses styles object
+
+5. Component Reference Issues
+   - Use existing React components when available
+   - Fix incorrect import paths
+   - Add missing imports
+   - Fix incorrect props passing
+
+HIGH PRIORITY (Should Fix - Consistency Reviews):
+6. Component Completeness
+   - Implement missing HTL elements
+   - Add missing Dialog fields as props
+   - Add missing Java fields as props
+   - Implement missing template calls
+
+7. Props Consistency
+   - Fix inconsistent field types
+   - Fix inconsistent required fields
+   - Fix inconsistent default values
+   - Ensure props match AEM Dialog/Java model
+
+8. Style Consistency
+   - Add missing CSS classes
+   - Fix inconsistent CSS rules
+   - Preserve responsive styles
+   - Implement missing pseudo-classes
+
+9. Functionality Consistency
+   - Implement missing event handlers
+   - Add missing interactions
+   - Implement missing initialization logic
+   - Ensure React functionality matches AEM JS
 
 MEDIUM PRIORITY (Nice to Fix):
 - Code quality improvements
-- BDL best practice improvements
 - Performance optimizations
+- Unused CSS classes cleanup
 
 IMPORTANT NOTES:
-- Fix ALL issues mentioned above
-- Prioritize critical and high-severity issues first
-- Ensure the corrected code COMPILES without errors
+- Fix ALL issues mentioned above, prioritizing by severity
+- Ensure the corrected code COMPILES without errors (npm run build must succeed)
 - Maintain ALL original functionality
 - Follow recommendations provided by each review agent
 - If this is iteration {iteration + 1}, ensure previous fixes are not reverted
+- Pay special attention to core reviews (1-5) - these must pass
+- Consistency reviews (6-9) should be addressed but won't block if core reviews pass
 
 Provide the COMPLETE corrected code, not just changes.
 
 CRITICAL OUTPUT REQUIREMENTS:
 - Output ONLY the complete, corrected React component code
-- The code must compile without errors
+- The code must compile without errors (npm run build must succeed)
 - Include all necessary imports
 - Include all prop definitions
+- Use CSS Modules correctly (import styles from './Component.module.css')
+- Use existing React components when available (check component registry)
 - Be ready to save directly to a .jsx file
-- Address ALL issues listed above"""
+- Address ALL issues listed above, especially core reviews"""
         
         prompt = review_summary
         
@@ -1663,6 +2057,12 @@ CRITICAL OUTPUT REQUIREMENTS:
             
             # 提取代码，如果失败则使用原始代码
             corrected_code = improve_code_extraction(str(result), fallback_code=original_code)
+            
+            # 清理代码（移除markdown代码块标记）
+            import re
+            corrected_code = re.sub(r'^```(?:jsx|tsx|javascript|typescript|js|ts)?\s*\n', '', corrected_code, flags=re.MULTILINE)
+            corrected_code = re.sub(r'\n```\s*$', '', corrected_code, flags=re.MULTILINE)
+            corrected_code = corrected_code.strip()
             
             # 验证提取的代码
             if not corrected_code or len(corrected_code) < 50:

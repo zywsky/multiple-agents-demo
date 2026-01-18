@@ -68,3 +68,72 @@ class BDLReviewResult(ReviewResult):
     compliance_issues: List[str] = Field(default_factory=list, description="规范违反问题")
     best_practice_violations: List[str] = Field(default_factory=list, description="最佳实践违反")
     api_usage_issues: List[str] = Field(default_factory=list, description="API 使用问题")
+
+
+class BuildExecutionReviewResult(ReviewResult):
+    """构建执行审查结果"""
+    build_status: str = Field(description="构建状态：success, failed, warnings, not_executed")
+    errors: List[str] = Field(default_factory=list, description="构建错误列表")
+    warnings: List[str] = Field(default_factory=list, description="构建警告列表")
+    build_output: Optional[str] = Field(None, description="构建输出文本")
+    exit_code: Optional[int] = Field(None, description="构建命令退出码")
+
+
+class BDLComponentUsageReviewResult(ReviewResult):
+    """BDL组件使用审查结果"""
+    invalid_props: List[str] = Field(default_factory=list, description="使用了不存在的属性")
+    missing_required_props: List[str] = Field(default_factory=list, description="缺少必需属性")
+    incorrect_prop_types: List[str] = Field(default_factory=list, description="属性类型错误")
+    bdl_component_usage: Dict[str, Any] = Field(default_factory=dict, description="BDL组件使用详情")
+
+
+class CSSImportReviewResult(ReviewResult):
+    """CSS导入审查结果"""
+    css_file_exists: bool = Field(description="CSS文件是否存在")
+    css_imported: bool = Field(description="CSS是否被导入")
+    css_import_path: Optional[str] = Field(None, description="CSS导入路径")
+    css_modules_used: bool = Field(description="是否使用CSS Modules")
+    missing_css_classes: List[str] = Field(default_factory=list, description="使用了但未定义的CSS类")
+    unused_css_classes: List[str] = Field(default_factory=list, description="定义了但未使用的CSS类")
+
+
+class ComponentReferenceReviewResult(ReviewResult):
+    """组件引用审查结果"""
+    should_use_existing: List[str] = Field(default_factory=list, description="应该使用但未使用的已生成组件")
+    incorrect_imports: List[str] = Field(default_factory=list, description="错误的import路径")
+    missing_imports: List[str] = Field(default_factory=list, description="缺失的import")
+    incorrect_props: List[str] = Field(default_factory=list, description="错误的props传递")
+
+
+class ComponentCompletenessReviewResult(ReviewResult):
+    """组件完整性审查结果"""
+    missing_htl_elements: List[str] = Field(default_factory=list, description="缺失的HTL元素")
+    missing_dialog_fields: List[str] = Field(default_factory=list, description="缺失的Dialog字段")
+    missing_java_fields: List[str] = Field(default_factory=list, description="缺失的Java字段")
+    missing_template_calls: List[str] = Field(default_factory=list, description="缺失的模板调用")
+    completeness_score: float = Field(description="完整性得分（0-1）")
+
+
+class PropsConsistencyReviewResult(ReviewResult):
+    """Props一致性审查结果"""
+    inconsistent_field_types: List[str] = Field(default_factory=list, description="字段类型不一致")
+    inconsistent_required_fields: List[str] = Field(default_factory=list, description="必填字段不一致")
+    inconsistent_default_values: List[str] = Field(default_factory=list, description="默认值不一致")
+    inconsistent_field_names: List[str] = Field(default_factory=list, description="字段名称不一致")
+    consistency_score: float = Field(description="一致性得分（0-1）")
+
+
+class StyleConsistencyReviewResult(ReviewResult):
+    """样式一致性审查结果"""
+    missing_css_classes: List[str] = Field(default_factory=list, description="缺失的CSS类")
+    inconsistent_css_rules: List[str] = Field(default_factory=list, description="不一致的CSS规则")
+    missing_responsive_styles: List[str] = Field(default_factory=list, description="缺失的响应式样式")
+    style_consistency_score: float = Field(description="样式一致性得分（0-1）")
+
+
+class FunctionalityConsistencyReviewResult(ReviewResult):
+    """功能一致性审查结果"""
+    missing_event_handlers: List[str] = Field(default_factory=list, description="缺失的事件处理")
+    missing_interactions: List[str] = Field(default_factory=list, description="缺失的交互")
+    missing_initialization: List[str] = Field(default_factory=list, description="缺失的初始化逻辑")
+    functionality_consistency_score: float = Field(description="功能一致性得分（0-1）")
