@@ -756,6 +756,28 @@ Select BDL components and return their file paths with reasoning."""
         component_name = resource_type.split("/")[-1] if "/" in resource_type else resource_type.split(".")[-1]
         component_name = component_name.title().replace("_", "")  # 转换为 PascalCase
         
+        # 检查依赖组件是否已经生成过React组件
+        from utils.component_registry import get_component_registry
+        component_registry = get_component_registry(output_path)
+        existing_dependency_components = {}
+        
+        if dependency_tree:
+            root_deps = dependency_tree.get('root', {}).get('dependencies', {})
+            dependency_resource_types = list(root_deps.keys())
+            
+            # 获取已生成的依赖组件
+            existing_dependency_components = component_registry.get_dependency_components(
+                dependency_resource_types
+            )
+            
+            if existing_dependency_components:
+                logger.info(
+                    f"Found {len(existing_dependency_components)} existing React components for dependencies: "
+                    f"{', '.join(existing_dependency_components.keys())}"
+                )
+            else:
+                logger.info("No existing React components found for dependencies, will use BDL components")
+        
         # 构建文件上下文说明（帮助 LLM 理解每个文件的作用）
         from utils.file_context_builder import build_file_context
         
@@ -770,12 +792,73 @@ Select BDL components and return their file paths with reasoning."""
                 context = build_file_context(analysis)
                 file_contexts_section += context + "\n"
         
-        # 依赖组件的文件
+        # 依赖组件的文件 - 构建详细的摘要
+        dependency_htl_summary = ""
+        dependency_dialog_summary = ""
+        dependency_js_summary = ""
+        
         if dependency_analyses:
             file_contexts_section += "\n--- DEPENDENCY COMPONENT FILES ---\n"
             file_contexts_section += "The following files are from components that this component depends on:\n\n"
+            
             for dep_resource_type, dep_analyses in dependency_analyses.items():
                 file_contexts_section += f"\n### Dependency Component: {dep_resource_type}\n"
+                
+                # 分类依赖组件的文件
+                dep_htl = [a for a in dep_analyses if a.get('file_type') in ['htl', 'html']]
+                dep_dialog = [a for a in dep_analyses if a.get('file_type') == 'dialog']
+                dep_js = [a for a in dep_analyses if a.get('file_type') == 'js']
+                
+                # 构建依赖组件的HTL摘要
+                if dep_htl:
+                    dep_htl_str = "\n\n".join([
+                        f"HTL Template: {fa.get('file_path', 'unknown')}\n"
+                        f"UI Structure: {fa.get('analysis', 'No analysis')}\n"
+                        f"Key Features: {', '.join(fa.get('key_features', []))}"
+                        for fa in dep_htl
+                    ])
+                    dependency_htl_summary += f"\n--- Dependency: {dep_resource_type} ---\n{dep_htl_str}\n"
+                
+                # 构建依赖组件的Dialog摘要
+                if dep_dialog:
+                    dep_dialog_str = "\n\n".join([
+                        f"Dialog Configuration: {fa.get('file_path', 'unknown')}\n"
+                        f"Property Definitions: {fa.get('analysis', 'No analysis')}\n"
+                        f"Configuration: {fa.get('configuration', {})}"
+                        for fa in dep_dialog
+                    ])
+                    dependency_dialog_summary += f"\n--- Dependency: {dep_resource_type} ---\n{dep_dialog_str}\n"
+                
+                # 构建依赖组件的JS摘要（使用增强分析）
+                if dep_js:
+                    try:
+                        from utils.js_analyzer import analyze_javascript_file, build_js_analysis_summary
+                        dep_js_analyses_enhanced = []
+                        for js_analysis in dep_js:
+                            js_file_path = js_analysis.get('file_path', '')
+                            if js_file_path:
+                                try:
+                                    enhanced = analyze_javascript_file(js_file_path)
+                                    if enhanced:
+                                        dep_js_analyses_enhanced.append({**js_analysis, **enhanced})
+                                except Exception as e:
+                                    logger.warning(f"Failed to enhance dependency JS analysis for {js_file_path}: {e}")
+                                    dep_js_analyses_enhanced.append(js_analysis)
+                        
+                        if dep_js_analyses_enhanced:
+                            dep_js_summary_text = build_js_analysis_summary(dep_js_analyses_enhanced)
+                            dependency_js_summary += f"\n--- Dependency: {dep_resource_type} ---\n{dep_js_summary_text}\n"
+                    except Exception as e:
+                        logger.warning(f"Failed to build dependency JS summary: {e}")
+                        # 回退到基本摘要
+                        dep_js_str = "\n\n".join([
+                            f"JavaScript Logic: {fa.get('file_path', 'unknown')}\n"
+                            f"Interactions: {fa.get('analysis', 'No analysis')}"
+                            for fa in dep_js
+                        ])
+                        dependency_js_summary += f"\n--- Dependency: {dep_resource_type} ---\n{dep_js_str}\n"
+                
+                # 文件上下文（原有逻辑）
                 for analysis in dep_analyses[:5]:  # 限制每个依赖组件最多 5 个文件
                     file_type = analysis.get('file_type', 'unknown')
                     if file_type in ['htl', 'html', 'dialog', 'js']:
@@ -814,6 +897,11 @@ Component Name: {component_name}
 {java_summary}
 {template_summary}
 {i18n_summary}
+
+=== DEPENDENCY COMPONENTS INFORMATION ===
+{dependency_htl_summary if dependency_htl_summary else "No dependency component HTL templates."}
+{dependency_dialog_summary if dependency_dialog_summary else "No dependency component Dialog configurations."}
+{dependency_js_summary if dependency_js_summary else "No dependency component JavaScript files."}
 
 === SELECTED BDL COMPONENTS ===
 {bdl_components_info}
