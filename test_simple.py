@@ -23,13 +23,13 @@ logger = logging.getLogger(__name__)
 def test_step_by_step():
     """逐步测试工作流的每个阶段"""
     from workflow.graph import create_workflow_graph
+    from config import config
     
-    # 测试配置
+    # 测试配置（使用配置管理模块）
     resource_type = "example/components/button"
-    test_data_dir = project_root / "test_data"
-    aem_repo_path = str(test_data_dir / "aem_components")
-    bdl_library_path = str(test_data_dir / "mui_library")
-    output_path = str(project_root / "output" / "test_button")
+    aem_repo_path = config.get_aem_repo_path()
+    bdl_library_path = config.get_bdl_library_path()
+    output_path = str(Path(config.get_output_path()) / "test_button")
     
     # 构建组件路径
     component_path = os.path.join(aem_repo_path, "example-button")
@@ -61,7 +61,7 @@ def test_step_by_step():
         "review_results": {},
         "review_passed": False,
         "iteration_count": 0,
-        "max_iterations": 3,  # 减少迭代次数以加快测试
+        "max_iterations": min(3, config.MAX_ITERATIONS),  # 减少迭代次数以加快测试
         "messages": [],
         "dependency_tree": {},
         "dependency_analyses": {}

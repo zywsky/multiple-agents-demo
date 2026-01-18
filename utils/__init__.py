@@ -9,15 +9,22 @@ from .path_utils import (
     join_paths
 )
 from .retry import retry_with_backoff, is_retryable_error
-from .schemas import (
-    FileAnalysisResult,
-    BDLComponentSelection,
-    CodeGenerationResult,
-    ReviewResult,
-    SecurityReviewResult,
-    BuildReviewResult,
-    BDLReviewResult
-)
+from .prompt_cleaner import PromptCleaner, cleaner
+
+# 尝试导入schemas（如果存在）
+try:
+    from .schemas import (
+        FileAnalysisResult,
+        BDLComponentSelection,
+        CodeGenerationResult,
+        ReviewResult,
+        SecurityReviewResult,
+        BuildReviewResult,
+        BDLReviewResult
+    )
+    _SCHEMAS_AVAILABLE = True
+except ImportError:
+    _SCHEMAS_AVAILABLE = False
 
 __all__ = [
     # Path utilities
@@ -29,12 +36,19 @@ __all__ = [
     # Retry utilities
     'retry_with_backoff',
     'is_retryable_error',
-    # Schemas
-    'FileAnalysisResult',
-    'BDLComponentSelection',
-    'CodeGenerationResult',
-    'ReviewResult',
-    'SecurityReviewResult',
-    'BuildReviewResult',
-    'BDLReviewResult',
+    # Prompt cleaning
+    'PromptCleaner',
+    'cleaner',
 ]
+
+# 如果schemas可用，添加到__all__
+if _SCHEMAS_AVAILABLE:
+    __all__.extend([
+        'FileAnalysisResult',
+        'BDLComponentSelection',
+        'CodeGenerationResult',
+        'ReviewResult',
+        'SecurityReviewResult',
+        'BuildReviewResult',
+        'BDLReviewResult',
+    ])

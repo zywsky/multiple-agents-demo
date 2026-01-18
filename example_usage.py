@@ -3,19 +3,16 @@
 演示如何使用工作流转换 AEM 组件（使用 BDL）
 """
 import os
-from dotenv import load_dotenv
 from workflow import create_workflow_graph, WorkflowState
-from utils.path_utils import normalize_path
-
-load_dotenv()
-
+from config import config
 
 def example_usage():
     """示例用法"""
     
-    # 从 .env 读取配置
-    aem_repo_path = normalize_path(os.getenv("AEM_REPO_PATH", "/path/to/aem/repo"))
-    bdl_library_path = normalize_path(os.getenv("BDL_LIBRARY_PATH", "/path/to/bdl/library"))
+    # 使用配置管理模块获取路径
+    aem_repo_path = config.get_aem_repo_path()
+    bdl_library_path = config.get_bdl_library_path()
+    output_path = config.get_output_path()
     
     # 示例 resourceType
     resource_type = "example/components/button"
@@ -23,8 +20,6 @@ def example_usage():
     # 构建组件路径
     from pathlib import Path
     component_path = str(Path(aem_repo_path) / resource_type.replace(".", os.sep))
-    
-    output_path = "./output"
     
     # 创建初始状态
     initial_state: WorkflowState = {
@@ -41,7 +36,7 @@ def example_usage():
         "review_results": {},
         "review_passed": False,
         "iteration_count": 0,
-        "max_iterations": 5,
+        "max_iterations": config.MAX_ITERATIONS,
         "messages": []
     }
     
