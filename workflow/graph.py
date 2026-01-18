@@ -47,6 +47,46 @@ class WorkflowState(TypedDict):
     messages: Annotated[List, add_messages]
 
 
+def _build_existing_components_section(existing_components: Dict[str, Dict[str, str]]) -> str:
+    """
+    构建已生成React组件的说明部分
+    
+    Args:
+        existing_components: 已生成的组件字典 {resource_type: component_info}
+    
+    Returns:
+        格式化的说明文本
+    """
+    if not existing_components:
+        return "No existing React components found for dependencies."
+    
+    section = "The following dependency components have already been generated as React components.\n"
+    section += "PRIORITY: Use these existing React components instead of BDL components when building the current component.\n\n"
+    
+    for resource_type, component_info in existing_components.items():
+        react_name = component_info.get('react_component_name', 'Unknown')
+        react_path = component_info.get('react_component_path', '')
+        css_path = component_info.get('css_path', '')
+        
+        section += f"--- Dependency: {resource_type} ---\n"
+        section += f"React Component Name: {react_name}\n"
+        section += f"React Component Path: {react_path}\n"
+        if css_path:
+            section += f"CSS Path: {css_path}\n"
+        section += f"\nIMPORT: import {react_name} from '{react_path}'\n"
+        section += f"USAGE: Use <{react_name} /> in your JSX\n\n"
+    
+    section += "IMPORTANT CONVERSION RULES:\n"
+    section += "1. When the current component uses data-sly-resource to include a dependency component,\n"
+    section += "   and that dependency component has an existing React component, use the existing React component.\n"
+    section += "2. Import the existing React component using the import path shown above.\n"
+    section += "3. Pass appropriate props to the existing React component based on the AEM component's usage.\n"
+    section += "4. Only use BDL components for parts that are NOT covered by existing React components.\n"
+    section += "5. Maintain the same component composition structure as in AEM.\n"
+    
+    return section
+
+
 def create_workflow_graph():
     """创建工作流图"""
     
@@ -903,6 +943,9 @@ Component Name: {component_name}
 {dependency_dialog_summary if dependency_dialog_summary else "No dependency component Dialog configurations."}
 {dependency_js_summary if dependency_js_summary else "No dependency component JavaScript files."}
 
+=== EXISTING REACT COMPONENTS (FOR DEPENDENCIES) ===
+{_build_existing_components_section(existing_dependency_components) if existing_dependency_components else "No existing React components found for dependencies. Use BDL components instead."}
+
 === SELECTED BDL COMPONENTS ===
 {bdl_components_info}
 """
@@ -1229,6 +1272,31 @@ Follow all conversion requirements above."""
                 logger.info(f"CSS code generated, saving to: {css_file_path}")
             else:
                 logger.warning("No CSS code generated. Component may need manual styling.")
+            
+            # 注册生成的组件到组件注册表
+            try:
+                from utils.component_registry import get_component_registry
+                registry = get_component_registry(output_path)
+                
+                # 计算相对路径（用于import）
+                import os
+                abs_code_path = os.path.abspath(code_file_path)
+                abs_output_path = os.path.abspath(output_path)
+                rel_code_path = os.path.relpath(abs_code_path, abs_output_path)
+                # 转换为import路径格式（使用/而不是\，去掉.jsx扩展名）
+                import_path = rel_code_path.replace('\\', '/').replace('.jsx', '')
+                if not import_path.startswith('.'):
+                    import_path = './' + import_path
+                
+                registry.register_component(
+                    aem_resource_type=resource_type,
+                    react_component_name=component_name,
+                    react_component_path=import_path,
+                    css_path=css_file_path
+                )
+                logger.info(f"Registered component in registry: {resource_type} -> {component_name}")
+            except Exception as e:
+                logger.warning(f"Failed to register component in registry: {e}")
             
             return {
                 **state,
