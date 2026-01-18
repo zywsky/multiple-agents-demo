@@ -26,6 +26,9 @@ def parse_java_file(java_file_path: str) -> Dict[str, Any]:
         - methods: 方法列表（包含 @PostConstruct 方法）
         - annotations: 类级别注解
         - implements: 实现的接口
+        - extends: 继承的父类
+        - imports: 导入的类列表
+        - referenced_classes: 引用的自定义类（同一项目下的）
         - data_structure: 数据结构摘要（用于生成 TypeScript 接口）
         - validation_rules: 验证规则
         - transformation_logic: 数据转换逻辑（@PostConstruct 方法）
@@ -45,10 +48,14 @@ def parse_java_file(java_file_path: str) -> Dict[str, Any]:
         'methods': [],
         'annotations': {},
         'implements': [],
+        'extends': None,
+        'imports': [],
+        'referenced_classes': [],
         'data_structure': {},
         'validation_rules': [],
         'transformation_logic': [],
-        'getter_methods': {}
+        'getter_methods': {},
+        'file_path': java_file_path
     }
     
     # 提取包名
@@ -61,11 +68,24 @@ def parse_java_file(java_file_path: str) -> Dict[str, Any]:
     if class_match:
         result['class_name'] = class_match.group(1)
     
+    # 提取继承的父类
+    extends_match = re.search(r'extends\s+(\w+(?:\.\w+)*)', content)
+    if extends_match:
+        result['extends'] = extends_match.group(1)
+    
     # 提取实现的接口
     implements_match = re.search(r'implements\s+([^{]+)', content)
     if implements_match:
         interfaces = [i.strip() for i in implements_match.group(1).split(',')]
         result['implements'] = interfaces
+    
+    # 提取import语句
+    import_pattern = r'import\s+(?:static\s+)?([\w.]+(?:\.[\w]+)*)\s*;'
+    import_matches = re.findall(import_pattern, content)
+    result['imports'] = import_matches
+    
+    # 提取引用的自定义类（同一项目下的）
+    result['referenced_classes'] = _extract_referenced_classes(content, result['package'], result['imports'])
     
     # 提取 @Model 注解信息
     model_annotation = _extract_model_annotation(content)
@@ -443,6 +463,257 @@ def _map_java_to_typescript_type(java_type: str) -> str:
         return 'any[]'
     
     return type_mapping.get(base_type, 'any')
+
+
+def _extract_referenced_classes(content: str, package_name: str, imports: List[str]) -> List[str]:
+    """
+    提取引用的自定义类（同一项目下的）
+    
+    只提取同一包或同一项目下的类，排除标准库和第三方库
+    
+    Args:
+        content: Java文件内容
+        package_name: 当前类的包名
+        imports: 导入的类列表
+    
+    Returns:
+        引用的自定义类列表（完整类名）
+    """
+    referenced = []
+    
+    # 从imports中提取同一项目下的类（通常是com.example开头的）
+    project_classes = []
+    for imp in imports:
+        # 检查是否是项目内的类（排除标准库和第三方库）
+        # 排除java.*, javax.*, org.apache.sling.*, com.adobe.cq.export.* 等标准库
+        if (imp.startswith('com.example.') or 
+            (imp.startswith('com.adobe.') and 'export' not in imp)):
+            # 提取类名
+            class_name = imp.split('.')[-1]
+            project_classes.append({
+                'full_name': imp,
+                'simple_name': class_name
+            })
+    
+    # 在代码中查找这些类的使用
+    for proj_class in project_classes:
+        simple_name = proj_class['simple_name']
+        # 查找类名在代码中的使用（作为类型、字段类型、方法参数等）
+        patterns = [
+            rf'\b{re.escape(simple_name)}\s+(\w+)\s*[;=\(]',  # 字段类型、变量类型
+            rf'new\s+{re.escape(simple_name)}\s*\(',  # new 实例化
+            rf'(\w+)\s*=\s*new\s+{re.escape(simple_name)}\s*\(',  # 赋值实例化
+        ]
+        for pattern in patterns:
+            if re.search(pattern, content):
+                referenced.append(proj_class['full_name'])
+                break
+    
+    # 查找extends中的自定义类（同一包下的类可能没有import）
+    extends_match = re.search(r'extends\s+(\w+(?:\.\w+)*)', content)
+    if extends_match:
+        extends_class = extends_match.group(1)
+        # 如果是简单类名，可能是同一包下的类
+        if '.' not in extends_class:
+            # 同一包下的类
+            if package_name:
+                referenced.append(f"{package_name}.{extends_class}")
+        else:
+            # 完整类名，检查是否是项目内的类
+            if extends_class.startswith('com.example.'):
+                referenced.append(extends_class)
+            else:
+                # 检查imports中是否有匹配的
+                for imp in imports:
+                    if imp.endswith('.' + extends_class.split('.')[-1]):
+                        if imp.startswith('com.example.'):
+                            referenced.append(imp)
+                            break
+    
+    # 查找字段类型中的自定义类（同一包下的类）
+    # 匹配字段定义：private CustomType fieldName;
+    field_type_pattern = r'(?:private|protected|public)\s+(?:static\s+)?(?:final\s+)?(\w+)\s+(\w+)\s*[;=]'
+    field_matches = re.finditer(field_type_pattern, content)
+    for match in field_matches:
+        field_type = match.group(1)
+        # 排除基本类型
+        basic_types = {'String', 'Integer', 'int', 'Long', 'long', 'Double', 'double', 
+                       'Float', 'float', 'Boolean', 'boolean', 'Date', 'Calendar', 
+                       'List', 'ArrayList', 'Map', 'HashMap', 'Set', 'HashSet',
+                       'Resource', 'SlingHttpServletRequest'}
+        if field_type not in basic_types:
+            # 检查是否是项目内的类
+            for proj_class in project_classes:
+                if proj_class['simple_name'] == field_type:
+                    if proj_class['full_name'] not in referenced:
+                        referenced.append(proj_class['full_name'])
+                    break
+            # 如果是简单类名且没有import，可能是同一包下的类
+            if '.' not in field_type and package_name:
+                full_class_name = f"{package_name}.{field_type}"
+                if full_class_name not in referenced:
+                    # 检查是否在imports中（可能没有import同一包下的类）
+                    found_in_imports = False
+                    for imp in imports:
+                        if imp == full_class_name or imp.endswith('.' + field_type):
+                            found_in_imports = True
+                            break
+                    if not found_in_imports:
+                        referenced.append(full_class_name)
+    
+    return list(set(referenced))
+
+
+def find_java_class_dependencies(
+    java_file_path: str,
+    aem_repo_path: str,
+    visited: Optional[Set[str]] = None,
+    max_depth: int = 5
+) -> List[Dict[str, Any]]:
+    """
+    递归查找Java类的所有依赖类（同一项目下的）
+    
+    Args:
+        java_file_path: Java文件路径
+        aem_repo_path: AEM repository根路径
+        visited: 已访问的类集合（防止循环依赖）
+        max_depth: 最大递归深度
+    
+    Returns:
+        依赖类的分析结果列表
+    """
+    if visited is None:
+        visited = set()
+    
+    if max_depth <= 0:
+        logger.warning(f"Max depth reached for {java_file_path}")
+        return []
+    
+    # 解析当前Java文件
+    current_analysis = parse_java_file(java_file_path)
+    if not current_analysis:
+        return []
+    
+    class_name = current_analysis.get('class_name', '')
+    package_name = current_analysis.get('package', '')
+    referenced_classes = current_analysis.get('referenced_classes', [])
+    extends_class = current_analysis.get('extends')
+    
+    # 构建当前类的唯一标识
+    if package_name and class_name:
+        class_id = f"{package_name}.{class_name}"
+    else:
+        class_id = java_file_path
+    
+    if class_id in visited:
+        logger.debug(f"Circular dependency detected: {class_id}")
+        return []
+    
+    visited.add(class_id)
+    dependencies = []
+    visited_paths = set()  # 用于去重文件路径
+    
+    # 查找父类
+    if extends_class:
+        parent_class_path = _find_java_class_path(extends_class, package_name, aem_repo_path)
+        if parent_class_path and parent_class_path not in visited_paths:
+            visited_paths.add(parent_class_path)
+            logger.info(f"Found parent class: {extends_class} at {parent_class_path}")
+            parent_analysis = parse_java_file(parent_class_path)
+            if parent_analysis:
+                dependencies.append(parent_analysis)
+                # 递归查找父类的依赖
+                parent_deps = find_java_class_dependencies(
+                    parent_class_path,
+                    aem_repo_path,
+                    visited,
+                    max_depth - 1
+                )
+                # 去重
+                for dep in parent_deps:
+                    dep_path = dep.get('file_path', '')
+                    if dep_path and dep_path not in visited_paths:
+                        visited_paths.add(dep_path)
+                        dependencies.append(dep)
+    
+    # 查找引用的自定义类
+    for ref_class in referenced_classes:
+        ref_class_path = _find_java_class_path(ref_class, package_name, aem_repo_path)
+        if ref_class_path and ref_class_path not in visited_paths:
+            visited_paths.add(ref_class_path)
+            logger.info(f"Found referenced class: {ref_class} at {ref_class_path}")
+            ref_analysis = parse_java_file(ref_class_path)
+            if ref_analysis:
+                dependencies.append(ref_analysis)
+                # 递归查找引用类的依赖
+                ref_deps = find_java_class_dependencies(
+                    ref_class_path,
+                    aem_repo_path,
+                    visited,
+                    max_depth - 1
+                )
+                # 去重
+                for dep in ref_deps:
+                    dep_path = dep.get('file_path', '')
+                    if dep_path and dep_path not in visited_paths:
+                        visited_paths.add(dep_path)
+                        dependencies.append(dep)
+    
+    return dependencies
+
+
+def _find_java_class_path(class_name: str, current_package: str, aem_repo_path: str) -> Optional[str]:
+    """
+    根据类名查找Java文件路径
+    
+    Args:
+        class_name: 类名（可能是简单类名或完整类名）
+        current_package: 当前类的包名（用于解析相对引用）
+        aem_repo_path: AEM repository根路径
+    
+    Returns:
+        Java文件路径，如果找不到返回None
+    """
+    repo_path = Path(aem_repo_path)
+    
+    # 如果是完整类名（包含包名）
+    if '.' in class_name:
+        # 将包名转换为路径
+        package_parts = class_name.split('.')
+        class_simple_name = package_parts[-1]
+        package_path = '/'.join(package_parts[:-1])
+        
+        # 在AEM repository中查找
+        # 通常Java文件在 src/main/java/ 或 core/src/main/java/ 下
+        # 也支持直接在组件目录下的情况（测试数据）
+        search_patterns = [
+            f'**/src/main/java/{package_path}/{class_simple_name}.java',
+            f'**/core/src/main/java/{package_path}/{class_simple_name}.java',
+            f'**/{package_path}/{class_simple_name}.java',
+            f'**/{class_simple_name}.java',  # 最后尝试简单文件名匹配
+        ]
+    else:
+        # 简单类名，先尝试同一包下
+        if current_package:
+            package_path = current_package.replace('.', '/')
+            search_patterns = [
+                f'**/src/main/java/{package_path}/{class_name}.java',
+                f'**/core/src/main/java/{package_path}/{class_name}.java',
+                f'**/{package_path}/{class_name}.java',
+                f'**/{class_name}.java',  # 最后尝试简单文件名匹配
+            ]
+        else:
+            search_patterns = [
+                f'**/{class_name}.java',
+            ]
+    
+    # 搜索文件
+    for pattern in search_patterns:
+        for java_file in repo_path.glob(pattern):
+            if java_file.is_file():
+                return str(java_file)
+    
+    return None
 
 
 def build_java_analysis_summary(java_analyses: List[Dict[str, Any]]) -> str:

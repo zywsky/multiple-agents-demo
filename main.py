@@ -144,6 +144,7 @@ def main():
         "aem_component_summary": {},  # AEM 组件综合摘要
         "generated_code": "",
         "code_file_path": "",
+        "css_file_path": "",
         "review_results": {},
         "review_passed": False,
         "iteration_count": 0,

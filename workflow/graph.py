@@ -39,6 +39,7 @@ class WorkflowState(TypedDict):
     aem_component_summary: Dict[str, Any]  # AEM 组件综合摘要（用于匹配和验证）
     generated_code: str
     code_file_path: str
+    css_file_path: str  # CSS文件路径（可选）
     review_results: Dict[str, Any]
     review_passed: bool
     iteration_count: int
@@ -574,15 +575,55 @@ Select BDL components and return their file paths with reasoning."""
             dialog_summary = f"\n\n=== DIALOG CONFIGURATION (REACT PROPS) - CRITICAL ===\n{dialog_analyses_str}\n"
         
         js_summary = ""
+        js_analyses_enhanced = []
         if js_analyses:
-            # JS 定义了交互逻辑
-            js_analyses_str = "\n\n".join([
-                f"JavaScript Logic: {fa.get('file_path', 'unknown')}\n"
-                f"Interactions: {fa.get('analysis', 'No analysis')}\n"
-                f"Key Features: {', '.join(fa.get('key_features', []))}"
-                for fa in js_analyses
-            ])
-            js_summary = f"\n\n=== JAVASCRIPT LOGIC (REACT INTERACTIONS) - IMPORTANT ===\n{js_analyses_str}\n"
+            try:
+                from utils.js_analyzer import analyze_javascript_file, build_js_analysis_summary
+                
+                # 增强JS分析：提取依赖、AEM API、初始化逻辑等
+                for js_analysis in js_analyses:
+                    js_file_path = js_analysis.get('file_path', '')
+                    if js_file_path:
+                        try:
+                            # 使用新的JS分析器进行深度分析
+                            enhanced_analysis = analyze_javascript_file(js_file_path)
+                            if enhanced_analysis:
+                                # 合并原有分析和增强分析
+                                js_analysis_merged = {**js_analysis, **enhanced_analysis}
+                                js_analyses_enhanced.append(js_analysis_merged)
+                                logger.info(f"Enhanced JS analysis for {js_file_path}: "
+                                          f"{len(enhanced_analysis.get('dependencies', []))} dependencies, "
+                                          f"{len(enhanced_analysis.get('initialization', {}).get('event_listeners', []))} event listeners")
+                        except Exception as e:
+                            logger.warning(f"Failed to enhance JS analysis for {js_file_path}: {e}")
+                            # 如果增强分析失败，使用原有分析
+                            js_analyses_enhanced.append(js_analysis)
+                
+                # 构建增强的JS摘要
+                if js_analyses_enhanced:
+                    js_summary = build_js_analysis_summary(js_analyses_enhanced)
+                    logger.info(f"Built enhanced JS analysis summary for {len(js_analyses_enhanced)} JavaScript files")
+                else:
+                    # 回退到原有方式
+                    js_analyses_str = "\n\n".join([
+                        f"JavaScript Logic: {fa.get('file_path', 'unknown')}\n"
+                        f"Interactions: {fa.get('analysis', 'No analysis')}\n"
+                        f"Key Features: {', '.join(fa.get('key_features', []))}"
+                        for fa in js_analyses
+                    ])
+                    js_summary = f"\n\n=== JAVASCRIPT LOGIC (REACT INTERACTIONS) - IMPORTANT ===\n{js_analyses_str}\n"
+            except Exception as e:
+                logger.warning(f"Failed to build enhanced JS analysis summary: {e}")
+                import traceback
+                traceback.print_exc()
+                # 回退到原有方式
+                js_analyses_str = "\n\n".join([
+                    f"JavaScript Logic: {fa.get('file_path', 'unknown')}\n"
+                    f"Interactions: {fa.get('analysis', 'No analysis')}\n"
+                    f"Key Features: {', '.join(fa.get('key_features', []))}"
+                    for fa in js_analyses
+                ])
+                js_summary = f"\n\n=== JAVASCRIPT LOGIC (REACT INTERACTIONS) - IMPORTANT ===\n{js_analyses_str}\n"
         
         # 提取并分析 Java Sling Models（用于生成 TypeScript 类型和数据转换逻辑）
         java_summary = ""
@@ -591,22 +632,46 @@ Select BDL components and return their file paths with reasoning."""
             try:
                 from utils.java_analyzer import parse_java_file, build_java_analysis_summary
                 
-                # 解析所有 Java 文件
+                # 解析所有 Java 文件，并递归查找依赖类
                 for java_analysis in java_analyses:
                     java_file_path = java_analysis.get('file_path', '')
                     if java_file_path:
                         try:
+                            # 解析当前Java文件
                             java_parsed = parse_java_file(java_file_path)
                             if java_parsed:
                                 java_analyses_raw.append(java_parsed)
                                 logger.info(f"Parsed Java Sling Model: {java_parsed.get('class_name', 'Unknown')}")
+                                
+                                # 递归查找依赖的Java类（同一项目下的）
+                                if aem_repo_path:
+                                    from utils.java_analyzer import find_java_class_dependencies
+                                    logger.info(f"Finding Java class dependencies for {java_parsed.get('class_name', 'Unknown')}")
+                                    java_dependencies = find_java_class_dependencies(
+                                        java_file_path,
+                                        aem_repo_path,
+                                        max_depth=5
+                                    )
+                                    if java_dependencies:
+                                        logger.info(f"Found {len(java_dependencies)} Java class dependencies")
+                                        # 添加依赖类到分析结果中（去重）
+                                        existing_class_ids = {
+                                            f"{a.get('package', '')}.{a.get('class_name', '')}" 
+                                            for a in java_analyses_raw
+                                        }
+                                        for dep in java_dependencies:
+                                            dep_id = f"{dep.get('package', '')}.{dep.get('class_name', '')}"
+                                            if dep_id not in existing_class_ids:
+                                                java_analyses_raw.append(dep)
+                                                existing_class_ids.add(dep_id)
+                                                logger.info(f"Added dependency class: {dep_id}")
                         except Exception as e:
                             logger.warning(f"Failed to parse Java file {java_file_path}: {e}")
                 
                 # 构建 Java 分析摘要
                 if java_analyses_raw:
                     java_summary = build_java_analysis_summary(java_analyses_raw)
-                    logger.info(f"Built Java analysis summary for {len(java_analyses_raw)} Sling Models")
+                    logger.info(f"Built Java analysis summary for {len(java_analyses_raw)} Sling Models (including dependencies)")
             except Exception as e:
                 logger.warning(f"Failed to build Java analysis summary: {e}")
                 import traceback
@@ -624,9 +689,33 @@ Select BDL components and return their file paths with reasoning."""
                             java_file_path = dep_analysis.get('file_path', '')
                             if java_file_path:
                                 try:
+                                    # 解析依赖组件的Java文件
                                     java_parsed = parse_java_file(java_file_path)
                                     if java_parsed:
                                         dependency_java_analyses.append(java_parsed)
+                                        
+                                        # 递归查找依赖的Java类（同一项目下的）
+                                        if aem_repo_path:
+                                            from utils.java_analyzer import find_java_class_dependencies
+                                            logger.info(f"Finding Java class dependencies for dependency {java_parsed.get('class_name', 'Unknown')}")
+                                            java_dependencies = find_java_class_dependencies(
+                                                java_file_path,
+                                                aem_repo_path,
+                                                max_depth=5
+                                            )
+                                            if java_dependencies:
+                                                logger.info(f"Found {len(java_dependencies)} Java class dependencies for dependency component")
+                                                # 添加依赖类到分析结果中（去重）
+                                                existing_class_ids = {
+                                                    f"{a.get('package', '')}.{a.get('class_name', '')}" 
+                                                    for a in dependency_java_analyses
+                                                }
+                                                for dep in java_dependencies:
+                                                    dep_id = f"{dep.get('package', '')}.{dep.get('class_name', '')}"
+                                                    if dep_id not in existing_class_ids:
+                                                        dependency_java_analyses.append(dep)
+                                                        existing_class_ids.add(dep_id)
+                                                        logger.info(f"Added dependency class: {dep_id}")
                                 except Exception as e:
                                     logger.warning(f"Failed to parse dependency Java file {java_file_path}: {e}")
             except Exception as e:
@@ -791,12 +880,21 @@ CSS Rules Found (Current Component):
             
             css_section += """
 IMPORTANT: When converting to React:
-1. Convert these CSS classes to BDL styling approach (sx prop, styled-components, or CSS modules)
-2. Preserve the visual appearance and behavior (colors, spacing, transitions, etc.)
-3. Handle responsive styles if present
-4. Maintain hover, focus, and other pseudo-class states
-5. For missing classes, you may need to infer styles or use BDL's default styling
-6. Include styles from dependency components when they are used in the final React component
+1. Generate BOTH the React component code AND a separate CSS/SCSS file
+2. The CSS file should contain all styles converted from AEM CSS
+3. Convert CSS classes to CSS Modules format (use .module.css or .module.scss)
+4. Preserve the visual appearance and behavior (colors, spacing, transitions, etc.)
+5. Handle responsive styles if present
+6. Maintain hover, focus, and other pseudo-class states
+7. For missing classes, you may need to infer styles or use BDL's default styling
+8. Include styles from dependency components when they are used in the final React component
+
+CSS FILE REQUIREMENTS:
+- Generate a CSS Module file (e.g., Button.module.css or Button.module.scss)
+- Use CSS Modules naming convention (camelCase for class names in JSX)
+- Import the CSS module in the React component: import styles from './Button.module.css'
+- Use className={styles.className} in JSX instead of class="className"
+- Preserve all original CSS rules, including pseudo-classes and media queries
 """
             prompt += css_section
         else:
@@ -924,13 +1022,38 @@ Output path: {output_path}
 
 Generate the complete React component code following ALL these requirements.
 
-CRITICAL: Output ONLY the complete React component code. The code must:
-- Be complete and compilable
-- Include all necessary imports
-- Include all prop definitions
-- Be ready to save directly to a .jsx file
-- Have no syntax errors
-- Follow all conversion requirements above"""
+CRITICAL OUTPUT REQUIREMENTS:
+1. React Component Code (.jsx file):
+   - Be complete and compilable
+   - Include all necessary imports
+   - Include all prop definitions
+   - Import the CSS module: import styles from './{component_name}.module.css'
+   - Use CSS Modules: className={{styles.className}} instead of class="className"
+   - Be ready to save directly to a .jsx file
+   - Have no syntax errors
+
+2. CSS Module File (.module.css or .module.scss):
+   - Generate a separate CSS Module file
+   - Include ALL styles from the AEM CSS (converted to CSS Modules format)
+   - Preserve all CSS rules, pseudo-classes, and media queries
+   - Use camelCase for class names (e.g., .exampleButton instead of .example-button)
+   - Be ready to save directly to a .module.css or .module.scss file
+
+OUTPUT FORMAT:
+Provide the code in the following format:
+```jsx
+// React Component Code
+[完整的React组件代码]
+```
+
+```css
+// CSS Module File
+[完整的CSS Module代码]
+```
+
+OR if using structured output, provide both component_code and css_code fields.
+
+Follow all conversion requirements above."""
         
         try:
             code_writing_agent = _get_agent(CodeWritingAgent, "code_writing")
@@ -939,22 +1062,46 @@ CRITICAL: Output ONLY the complete React component code. The code must:
             # 处理结构化输出并验证代码质量
             from utils.code_validator import extract_and_validate_code, improve_code_extraction
             
+            # 提取组件代码和CSS代码
+            generated_code = ""
+            generated_css = ""
+            
             if hasattr(result, 'component_code'):
                 # 是 CodeGenerationResult 对象
                 generated_code = result.component_code
+                generated_css = getattr(result, 'css_code', None) or ""
                 logger.info(
                     f"Code generated for {result.component_name}. "
                     f"Imports: {len(result.imports)}, Dependencies: {len(result.dependencies)}"
                 )
+                if generated_css:
+                    logger.info(f"CSS code also generated ({len(generated_css)} chars)")
                 # 如果有 notes，记录
                 if result.notes:
                     logger.info(f"Generation notes: {result.notes}")
             elif isinstance(result, dict) and "component_code" in result:
                 # 是字典格式
                 generated_code = result["component_code"]
+                generated_css = result.get("css_code", "")
             else:
-                # 回退到改进的代码提取
-                generated_code = improve_code_extraction(str(result))
+                # 回退到改进的代码提取（尝试提取组件代码和CSS代码）
+                full_result = str(result)
+                generated_code = improve_code_extraction(full_result)
+                
+                # 尝试提取CSS代码
+                import re
+                # 查找CSS代码块
+                css_match = re.search(r'```(?:css|scss|sass)\s*\n(.*?)\n```', full_result, re.DOTALL)
+                if css_match:
+                    generated_css = css_match.group(1).strip()
+                    logger.info(f"Extracted CSS code from output ({len(generated_css)} chars)")
+                else:
+                    # 尝试查找.module.css或.module.scss代码块
+                    css_module_match = re.search(r'```(?:css|scss)\s*\n(.*?\.module\.(?:css|scss).*?)\n```', full_result, re.DOTALL)
+                    if css_module_match:
+                        generated_css = css_module_match.group(1).strip()
+                        logger.info(f"Extracted CSS Module code from output ({len(generated_css)} chars)")
+                
                 logger.warning("Received unstructured code output, using improved code extraction")
             
             # 验证生成的代码基本质量
@@ -972,16 +1119,34 @@ CRITICAL: Output ONLY the complete React component code. The code must:
             
             # 生成文件路径（跨平台）
             from pathlib import Path
+            from tools import write_file
             output_path_obj = Path(output_path)
             output_path_obj.mkdir(parents=True, exist_ok=True)
             code_file_path = str(output_path_obj / f"{component_name}.jsx")
             
+            # 保存组件代码
             logger.info(f"Code generated, saving to: {code_file_path}")
+            write_file(code_file_path, generated_code)
+            
+            # 生成并保存CSS文件（如果存在）
+            css_file_path = None
+            if generated_css and len(generated_css.strip()) > 0:
+                # 确定CSS文件扩展名（.module.css 或 .module.scss）
+                css_ext = ".module.css"  # 默认使用CSS
+                if ".scss" in generated_css or "scss" in generated_css.lower():
+                    css_ext = ".module.scss"
+                
+                css_file_path = str(output_path_obj / f"{component_name}{css_ext}")
+                write_file(css_file_path, generated_css)
+                logger.info(f"CSS code generated, saving to: {css_file_path}")
+            else:
+                logger.warning("No CSS code generated. Component may need manual styling.")
             
             return {
                 **state,
                 "generated_code": generated_code,
-                "code_file_path": code_file_path
+                "code_file_path": code_file_path,
+                "css_file_path": css_file_path  # 添加CSS文件路径到状态
             }
         except Exception as e:
             logger.error(f"Error generating code: {str(e)}")

@@ -237,6 +237,7 @@ def infer_css_path_from_component(component_path: str) -> List[str]:
     1. 组件目录下的 CSS 文件
     2. 组件名称匹配的 CSS 文件（在 styles 目录中）
     3. 路径相似的 CSS 文件
+    4. 专门的CSS目录，保持相同的层级结构
     
     Args:
         component_path: 组件路径
@@ -255,12 +256,24 @@ def infer_css_path_from_component(component_path: str) -> List[str]:
     for css_file in component_dir.glob('*.css'):
         css_files.append(str(css_file))
     
-    # 2. 在父目录的 styles 中查找
+    # 2. 在父目录的 styles/css 中查找（保持相同层级结构）
     parent_dir = component_dir.parent
     # 向上查找最多 5 层
     current_dir = parent_dir
     for depth in range(5):
-        # styles/{component_name}/*.css
+        # styles/components/{component_name}/*.css (保持相同层级)
+        styles_dir = current_dir / 'styles' / 'components' / component_name
+        if styles_dir.exists():
+            for css_file in styles_dir.glob('*.css'):
+                css_files.append(str(css_file))
+        
+        # css/components/{component_name}/*.css (保持相同层级)
+        css_dir = current_dir / 'css' / 'components' / component_name
+        if css_dir.exists():
+            for css_file in css_dir.glob('*.css'):
+                css_files.append(str(css_file))
+        
+        # styles/{component_name}/*.css (简化层级)
         styles_dir = current_dir / 'styles' / component_name
         if styles_dir.exists():
             for css_file in styles_dir.glob('*.css'):
@@ -282,25 +295,127 @@ def infer_css_path_from_component(component_path: str) -> List[str]:
     # 可能在 /apps/example/styles/components/button 或 /apps/example/styles/button
     path_parts = component_dir.parts
     if len(path_parts) >= 3:
-        # 尝试替换 "components" 为 "styles"
-        new_parts = []
-        for part in path_parts:
-            if part == 'components':
-                new_parts.append('styles')
-            else:
-                new_parts.append(part)
-        
-        # 构建新路径
-        inferred_path = Path(*new_parts)
-        if inferred_path.exists():
-            for css_file in inferred_path.glob('*.css'):
-                css_files.append(str(css_file))
-        
-        # 也尝试在 styles 目录下直接查找组件名
-        if len(path_parts) >= 2:
-            styles_base = Path(*path_parts[:-1]) / 'styles' / component_name
-            if styles_base.exists():
-                for css_file in styles_base.glob('*.css'):
+        # 尝试替换 "components" 为 "styles" 或 "css"
+        for replacement in ['styles', 'css']:
+            new_parts = []
+            for part in path_parts:
+                if part == 'components':
+                    new_parts.append(replacement)
+                else:
+                    new_parts.append(part)
+            
+            # 构建新路径
+            inferred_path = Path(*new_parts)
+            if inferred_path.exists():
+                for css_file in inferred_path.glob('*.css'):
                     css_files.append(str(css_file))
+        
+        # 也尝试在 styles/css 目录下保持相同层级结构
+        for replacement in ['styles', 'css']:
+            if len(path_parts) >= 2:
+                # 保持 components 层级：styles/components/{component_name}
+                styles_base = Path(*path_parts[:-1]) / replacement / 'components' / component_name
+                if styles_base.exists():
+                    for css_file in styles_base.glob('*.css'):
+                        css_files.append(str(css_file))
+                
+                # 简化层级：styles/{component_name}
+                styles_base = Path(*path_parts[:-1]) / replacement / component_name
+                if styles_base.exists():
+                    for css_file in styles_base.glob('*.css'):
+                        css_files.append(str(css_file))
+    
+    return list(set(css_files))
+
+
+def find_css_in_dedicated_styles_directory(component_path: str, aem_repo_path: str = None) -> List[str]:
+    """
+    在专门的CSS/样式目录中查找CSS文件，保持与组件相同的层级结构
+    
+    搜索策略：
+    1. 如果组件在 components/example-button，查找 styles/components/example-button/button.css
+    2. 如果组件在 components/example-button，查找 css/components/example-button/button.css
+    3. 保持完整的路径层级结构（components -> styles/css）
+    4. 在AEM repository根目录下搜索专门的styles/css目录
+    
+    例如：
+    - 组件：apps/example/components/button/button.html
+    - CSS：apps/example/styles/components/button/button.css
+    - CSS：apps/example/css/components/button/button.css
+    
+    Args:
+        component_path: 组件路径
+        aem_repo_path: AEM repository根路径（可选，用于全局搜索）
+    
+    Returns:
+        CSS文件路径列表
+    """
+    css_files = []
+    component_dir = Path(component_path)
+    component_name = component_dir.name
+    
+    if not component_dir.exists():
+        return css_files
+    
+    # 获取组件路径的各个部分
+    path_parts = list(component_dir.parts)
+    
+    # 策略1: 在组件路径的父目录下查找styles/css目录，保持相同层级
+    # 例如：components/example-button -> styles/components/example-button
+    parent_dir = component_dir.parent
+    current_dir = parent_dir
+    for depth in range(5):  # 向上查找最多5层
+        for styles_dir_name in ['styles', 'css']:
+            # 保持完整层级：styles/components/{component_name}
+            styles_dir = current_dir / styles_dir_name / 'components' / component_name
+            if styles_dir.exists() and styles_dir.is_dir():
+                for css_file in styles_dir.glob('*.css'):
+                    if css_file.is_file():
+                        css_files.append(str(css_file))
+            
+            # 简化层级：styles/{component_name}
+            styles_dir = current_dir / styles_dir_name / component_name
+            if styles_dir.exists() and styles_dir.is_dir():
+                for css_file in styles_dir.glob('*.css'):
+                    if css_file.is_file():
+                        css_files.append(str(css_file))
+        
+        # 向上移动
+        if current_dir == current_dir.parent:
+            break
+        current_dir = current_dir.parent
+    
+    # 策略2: 替换路径中的"components"为"styles"或"css"，保持其他部分不变
+    if len(path_parts) >= 2:
+        for replacement in ['styles', 'css']:
+            new_parts = []
+            for part in path_parts:
+                if part == 'components':
+                    new_parts.append(replacement)
+                else:
+                    new_parts.append(part)
+            
+            # 构建新路径
+            inferred_path = Path(*new_parts)
+            if inferred_path.exists() and inferred_path.is_dir():
+                for css_file in inferred_path.glob('*.css'):
+                    if css_file.is_file():
+                        css_files.append(str(css_file))
+    
+    # 策略3: 在AEM repository根目录下搜索专门的styles/css目录
+    if aem_repo_path:
+        repo_path = Path(aem_repo_path)
+        if repo_path.exists():
+            # 查找所有可能的styles/css目录
+            for styles_dir_name in ['styles', 'css']:
+                # 搜索 patterns: **/styles/components/{component_name}/*.css
+                for css_file in repo_path.rglob(f'{styles_dir_name}/components/{component_name}/*.css'):
+                    if css_file.is_file():
+                        css_files.append(str(css_file))
+                
+                # 搜索 patterns: **/styles/{component_name}/*.css
+                for css_file in repo_path.rglob(f'{styles_dir_name}/{component_name}/*.css'):
+                    if css_file.is_file():
+                        css_files.append(str(css_file))
     
     return list(set(css_files))

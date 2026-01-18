@@ -84,6 +84,7 @@ def test_component(resource_type: str, component_name: str):
         "aem_component_summary": {},
         "generated_code": "",
         "code_file_path": "",
+        "css_file_path": "",
         "review_results": {},
         "review_passed": False,
         "iteration_count": 0,

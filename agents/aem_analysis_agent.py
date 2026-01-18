@@ -40,7 +40,7 @@ def analyze_script_file(file_path: str) -> str:
 
 class AEMAnalysisAgent(BaseAgent):
     """AEM 分析 Agent - 逐个文件分析"""
-    
+
     def __init__(self):
         from tools import (
             list_files,
@@ -52,7 +52,7 @@ class AEMAnalysisAgent(BaseAgent):
             find_files_in_similar_paths,
             find_css_for_component_in_similar_paths
         )
-        
+
         tools = [
             analyze_htl_file,
             analyze_dialog_file,
@@ -67,7 +67,7 @@ class AEMAnalysisAgent(BaseAgent):
             find_files_in_similar_paths,
             find_css_for_component_in_similar_paths
         ]
-        
+
         system_prompt = """You are an AEM (Adobe Experience Manager) expert analyst.
 Your task is to analyze AEM component source code files with focus on conversion to React.
 
@@ -116,7 +116,7 @@ For each file, provide:
 - Conversion notes (how this should be converted to React)
 
 Output format should be structured and clear for downstream agents."""
-        
+
         super().__init__(
             name="AEMAnalysisAgent",
             system_prompt=system_prompt,
@@ -124,15 +124,15 @@ Output format should be structured and clear for downstream agents."""
             temperature=0.2,
             output_schema=FileAnalysisResult  # 使用结构化输出
         )
-    
+
     def analyze_file(self, file_path: str) -> dict:
         """分析单个文件并返回结构化结果"""
         file_content = read_file(file_path)
         file_type, priority = identify_aem_file_type(file_path)
-        
+
         # 根据文件类型构建针对性的提示
         type_specific_prompt = ""
-        
+
         if file_type in ['htl', 'html']:
             # 提取 HTL 特定信息
             htl_props = extract_htl_properties(file_content)
@@ -210,7 +210,7 @@ This JavaScript logic should be converted to React hooks and event handlers.
             try:
                 from utils.java_analyzer import parse_java_file
                 java_parsed = parse_java_file(file_path)
-                
+
                 if java_parsed:
                     class_name = java_parsed.get('class_name', 'Unknown')
                     resource_type = java_parsed.get('resource_type', '')
@@ -218,7 +218,7 @@ This JavaScript logic should be converted to React hooks and event handlers.
                     data_structure = java_parsed.get('data_structure', {})
                     transformation_logic = java_parsed.get('transformation_logic', [])
                     validation_rules = java_parsed.get('validation_rules', [])
-                    
+
                     fields_summary = []
                     for field in fields[:10]:  # 前10个字段
                         field_name = field.get('name', '')
@@ -226,8 +226,9 @@ This JavaScript logic should be converted to React hooks and event handlers.
                         is_required = field.get('is_required', False)
                         annotations = [ann.get('name', '') for ann in field.get('annotations', [])]
                         required_marker = " (required)" if is_required else ""
-                        fields_summary.append(f"  - {field_name}: {field_type}{required_marker} [{', '.join(annotations)}]")
-                    
+                        fields_summary.append(
+                            f"  - {field_name}: {field_type}{required_marker} [{', '.join(annotations)}]")
+
                     type_specific_prompt = f"""
 This is a Java Sling Model file - CRITICAL for React TypeScript types and data structure.
 
@@ -284,7 +285,7 @@ Focus on extracting:
 
 This information is critical for generating accurate TypeScript interfaces.
 """
-        
+
         prompt = f"""Analyze this AEM component file for React conversion:
 
 File path: {file_path}
@@ -294,10 +295,10 @@ File content:
 {type_specific_prompt}
 
 Provide a structured analysis following the required format, with emphasis on React conversion requirements."""
-        
+
         try:
             result = self.run(prompt, return_structured=True)
-            
+
             # 如果返回的是结构化对象，转换为字典
             if isinstance(result, FileAnalysisResult):
                 return result.model_dump()

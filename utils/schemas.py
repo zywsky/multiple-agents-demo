@@ -32,6 +32,7 @@ class BDLComponentSelection(BaseModel):
 class CodeGenerationResult(BaseModel):
     """代码生成结果"""
     component_code: str = Field(description="生成的 React 组件代码")
+    css_code: Optional[str] = Field(None, description="生成的 CSS Module 代码（.module.css 或 .module.scss）")
     imports: List[str] = Field(default_factory=list, description="需要的导入语句")
     dependencies: List[str] = Field(default_factory=list, description="package.json 依赖")
     component_name: str = Field(description="组件名称")

@@ -34,6 +34,7 @@ def extract_css_classes_from_htl(htl_content: str) -> Set[str]:
         r'class\s*=\s*["\']([^"\']+)["\']',  # class="example-button"
         r'class\s*=\s*\{([^}]+)\}',  # class="${variable}"
         r'data-sly-attribute\.class\s*=\s*["\']([^"\']+)["\']',  # data-sly-attribute.class
+        r'className\s*=\s*["\']([^"\']+)["\']',  # className (React style, sometimes used)
     ]
     
     for pattern in patterns:
@@ -48,6 +49,111 @@ def extract_css_classes_from_htl(htl_content: str) -> Set[str]:
                     classes.add(class_name)
     
     return classes
+
+
+def extract_inline_styles_from_htl(htl_content: str) -> Dict[str, str]:
+    """
+    从 HTL 内容中提取内联样式
+    
+    Args:
+        htl_content: HTL 模板内容
+    
+    Returns:
+        {element_identifier: style_string} 字典
+    """
+    inline_styles = {}
+    
+    # 匹配 style 属性
+    patterns = [
+        r'style\s*=\s*["\']([^"\']+)["\']',  # style="color: red;"
+        r'data-sly-attribute\.style\s*=\s*["\']([^"\']+)["\']',  # data-sly-attribute.style
+        r'style\s*=\s*\{([^}]+)\}',  # style="${variable}"
+    ]
+    
+    for pattern in patterns:
+        matches = re.finditer(pattern, htl_content, re.IGNORECASE)
+        for match in matches:
+            style_content = match.group(1).strip().strip('${}').strip('"\'')
+            if style_content and not style_content.startswith('$'):
+                # 尝试找到对应的元素标识（class或id）
+                context_start = max(0, match.start() - 200)
+                context = htl_content[context_start:match.start()]
+                # 查找最近的class或id
+                class_match = re.search(r'class\s*=\s*["\']([^"\']+)["\']', context)
+                id_match = re.search(r'id\s*=\s*["\']([^"\']+)["\']', context)
+                identifier = None
+                if class_match:
+                    identifier = class_match.group(1).split()[0]  # 取第一个class
+                elif id_match:
+                    identifier = id_match.group(1)
+                else:
+                    identifier = f"inline-style-{len(inline_styles)}"
+                
+                inline_styles[identifier] = style_content
+    
+    return inline_styles
+
+
+def extract_css_from_javascript(js_content: str) -> Dict[str, str]:
+    """
+    从 JavaScript 文件中提取 CSS 相关代码
+    
+    提取内容：
+    1. CSS-in-JS 样式（style.textContent, style.innerHTML）
+    2. 动态添加的 CSS 类
+    3. 样式操作（element.style.*）
+    
+    Args:
+        js_content: JavaScript 文件内容
+    
+    Returns:
+        {type: content} 字典，包含提取的CSS信息
+    """
+    css_info = {
+        'css_in_js': [],
+        'dynamic_classes': [],
+        'style_operations': []
+    }
+    
+    # 提取 CSS-in-JS
+    css_in_js_patterns = [
+        r'style\.textContent\s*=\s*["\']([^"\']+)["\']',
+        r'style\.innerHTML\s*=\s*["\']([^"\']+)["\']',
+        r'\.textContent\s*=\s*["\']([^"\']*\{[^}]*\}[^"\']*)["\']',  # CSS规则
+    ]
+    
+    for pattern in css_in_js_patterns:
+        matches = re.finditer(pattern, js_content, re.IGNORECASE | re.DOTALL)
+        for match in matches:
+            css_content = match.group(1)
+            if css_content and ('{' in css_content or ':' in css_content):
+                css_info['css_in_js'].append(css_content)
+    
+    # 提取动态添加的CSS类
+    class_patterns = [
+        r'classList\.add\(["\']([^"\']+)["\']\)',
+        r'className\s*\+=\s*["\']\s*([^"\']+)["\']',
+        r'\.class\s*=\s*["\']([^"\']+)["\']',
+    ]
+    
+    for pattern in class_patterns:
+        matches = re.findall(pattern, js_content, re.IGNORECASE)
+        for match in matches:
+            if match.strip():
+                css_info['dynamic_classes'].append(match.strip())
+    
+    # 提取样式操作
+    style_patterns = [
+        r'\.style\.(\w+)\s*=\s*["\']?([^;"\']+)["\']?',
+        r'setProperty\(["\']([^"\']+)["\']\s*,\s*["\']?([^"\']+)["\']?\)',
+    ]
+    
+    for pattern in style_patterns:
+        matches = re.finditer(pattern, js_content, re.IGNORECASE)
+        for match in matches:
+            css_info['style_operations'].append(match.group(0))
+    
+    return css_info
 
 
 def find_component_css_files(component_path: str) -> List[str]:
@@ -86,7 +192,8 @@ def find_component_css_files(component_path: str) -> List[str]:
         from utils.css_path_finder import (
             find_css_in_similar_paths,
             find_css_by_component_name,
-            infer_css_path_from_component
+            infer_css_path_from_component,
+            find_css_in_dedicated_styles_directory
         )
         
         # 在相似路径中查找
@@ -102,6 +209,24 @@ def find_component_css_files(component_path: str) -> List[str]:
         # 推断可能的 CSS 路径
         inferred_css = infer_css_path_from_component(component_path)
         css_files.extend(inferred_css)
+        
+        # 在专门的CSS/样式目录中查找（保持相同层级结构）
+        # 尝试从组件路径推断AEM repo路径
+        aem_repo_path = None
+        # 向上查找，找到可能的repo根目录（包含components目录的父目录）
+        current_dir = component_dir
+        for _ in range(10):  # 最多向上10层
+            if (current_dir / 'components').exists() or (current_dir / 'styles').exists() or (current_dir / 'css').exists():
+                aem_repo_path = str(current_dir)
+                break
+            if current_dir == current_dir.parent:
+                break
+            current_dir = current_dir.parent
+        
+        dedicated_css = find_css_in_dedicated_styles_directory(component_path, aem_repo_path)
+        css_files.extend(dedicated_css)
+        if dedicated_css:
+            logger.info(f"Found {len(dedicated_css)} CSS files in dedicated styles/css directories")
         
     except ImportError as e:
         logger.warning(f"Could not import css_path_finder: {e}")
@@ -145,9 +270,12 @@ def parse_clientlib_config(config_path: str) -> Dict[str, any]:
         if categories_attr:
             # categories 可能是字符串（单个）或数组
             if isinstance(categories_attr, str):
-                config['categories'] = [cat.strip() for cat in categories_attr.split(',')]
+                # 处理方括号格式：[category1,category2] 或 "category1,category2"
+                categories_str = categories_attr.strip().strip('[]').strip('"\'')
+                config['categories'] = [cat.strip() for cat in categories_str.split(',') if cat.strip()]
             else:
-                config['categories'] = categories_attr
+                # 如果是列表，清理每个元素
+                config['categories'] = [str(cat).strip().strip('[]').strip('"\'') for cat in categories_attr if str(cat).strip()]
         
         # 提取 embeds（嵌入的其他 ClientLibs）
         embeds_attr = root.get('{http://www.day.com/jcr/cq/1.0}embed') or root.get('embed')
@@ -204,20 +332,39 @@ def find_clientlib_by_category(category: str, aem_repo_path: str) -> List[str]:
     # 2. /etc/clientlibs/<category>
     # 3. /libs/<project>/clientlibs/<category>
     
-    search_paths = [
-        repo_path / 'apps' / '**' / 'clientlibs' / category,
-        repo_path / 'etc' / 'clientlibs' / category,
-        repo_path / 'libs' / '**' / 'clientlibs' / category,
-        repo_path / '**' / 'clientlibs' / category,  # 通用搜索
+    # 清理category（移除可能的方括号和空格）
+    category = category.strip().strip('[]').strip('"\'')
+    
+    # AEM ClientLibs 可能在这些位置：
+    # 1. /apps/<project>/clientlibs/<任意目录名>（通过.content.xml中的category匹配）
+    # 2. /etc/clientlibs/<任意目录名>
+    # 3. /libs/<project>/clientlibs/<任意目录名>
+    # 4. 组件目录下的 clientlibs/<任意目录名>
+    # 5. 任何位置的 clientlibs/<任意目录名>
+    
+    # 注意：category存储在.content.xml中，而不是目录名
+    # 所以我们需要搜索所有clientlibs目录，然后检查其.content.xml中的category
+    
+    search_patterns = [
+        '**/clientlibs/**/.content.xml',  # 查找所有clientlibs目录下的.content.xml
+        '**/clientlibs/.content.xml',  # 直接是clientlibs目录的情况
     ]
     
-    for search_path in search_paths:
-        for clientlib_dir in repo_path.glob(str(search_path.relative_to(repo_path))):
-            if clientlib_dir.is_dir():
-                # 检查是否有 .content.xml
-                config_file = clientlib_dir / '.content.xml'
-                if config_file.exists():
-                    clientlib_dirs.append(str(clientlib_dir))
+    for pattern in search_patterns:
+        for config_file in repo_path.glob(pattern):
+            try:
+                config = parse_clientlib_config(str(config_file))
+                # 验证category是否匹配
+                config_categories = config.get('categories', [])
+                
+                # 检查category是否在配置的categories中
+                if category in config_categories:
+                    clientlib_dir = config_file.parent
+                    if str(clientlib_dir) not in clientlib_dirs:
+                        clientlib_dirs.append(str(clientlib_dir))
+                        logger.debug(f"Found ClientLibs: {clientlib_dir} (category: {category})")
+            except Exception as e:
+                logger.debug(f"Error parsing ClientLibs config {config_file}: {e}")
     
     return clientlib_dirs
 
@@ -296,23 +443,28 @@ def find_css_for_classes(
     component_path: str,
     css_classes: Set[str],
     aem_repo_path: str,
-    htl_content: Optional[str] = None
+    htl_content: Optional[str] = None,
+    js_content: Optional[str] = None
 ) -> Dict[str, Dict[str, str]]:
     """
     查找 CSS class 对应的样式定义
     
     查找策略（按优先级）：
-    1. 组件目录下的 CSS 文件
+    1. 组件目录下的 CSS 文件（包括CSS Modules）
     2. 组件目录下的 ClientLibs 配置
     3. HTL 中引用的样式文件（data-sly-call template.styles）
     4. 根据 ClientLibs category 查找
-    5. 全局搜索
+    5. 专门的CSS目录（styles/css，保持相同层级）
+    6. CSS变量文件、主题CSS、响应式CSS
+    7. CSS-in-JS（JavaScript中的CSS）
+    8. 全局搜索
     
     Args:
         component_path: 组件路径
         css_classes: 要查找的 CSS class 集合
         aem_repo_path: AEM repository 根路径
         htl_content: HTL 内容（可选，用于提取样式引用）
+        js_content: JavaScript 内容（可选，用于提取CSS-in-JS）
     
     Returns:
         {class_name: {file_path: css_rule}} 字典
@@ -351,16 +503,101 @@ def find_css_for_classes(
                             results[class_name] = {}
                         results[class_name][css_path] = rule
         
-        # 处理 embeds（嵌入的其他 ClientLibs）
-        for embed_category in config['embeds']:
-            embedded_clientlibs = find_clientlib_by_category(embed_category, aem_repo_path)
-            for clientlib_dir in embedded_clientlibs:
-                for css_file in Path(clientlib_dir).glob('*.css'):
-                    rules = extract_css_rules_from_file(str(css_file), css_classes)
-                    for class_name, rule in rules.items():
-                        if class_name not in results:
-                            results[class_name] = {}
-                        results[class_name][str(css_file)] = rule
+        # 处理 embeds（嵌入的其他 ClientLibs）- 递归处理
+        def process_embeds_recursive(embed_categories: List[str], visited_categories: Set[str] = None):
+            """递归处理嵌入的 ClientLibs"""
+            if visited_categories is None:
+                visited_categories = set()
+            
+            for embed_category in embed_categories:
+                # 防止循环依赖
+                if embed_category in visited_categories:
+                    logger.debug(f"Skipping already visited embed category: {embed_category}")
+                    continue
+                
+                visited_categories.add(embed_category)
+                embedded_clientlibs = find_clientlib_by_category(embed_category, aem_repo_path)
+                
+                for clientlib_dir in embedded_clientlibs:
+                    # 查找CSS文件（包括子目录，特别是css/目录）
+                    clientlib_path = Path(clientlib_dir)
+                    # 查找根目录和css子目录
+                    css_search_paths = [
+                        clientlib_path.glob('*.css'),  # 根目录
+                        clientlib_path.glob('css/*.css'),  # css子目录
+                        clientlib_path.rglob('*.css'),  # 所有子目录
+                    ]
+                    
+                    for css_search in css_search_paths:
+                        for css_file in css_search:
+                            if css_file.is_file():
+                                rules = extract_css_rules_from_file(str(css_file), css_classes)
+                                for class_name, rule in rules.items():
+                                    if class_name not in results:
+                                        results[class_name] = {}
+                                    results[class_name][str(css_file)] = rule
+                    
+                    # 递归处理嵌入的ClientLibs
+                    embed_config_file = Path(clientlib_dir) / '.content.xml'
+                    if embed_config_file.exists():
+                        embed_config = parse_clientlib_config(str(embed_config_file))
+                        if embed_config['embeds']:
+                            process_embeds_recursive(embed_config['embeds'], visited_categories)
+                        # 也处理embeds的dependencies（因为embeds的ClientLibs可能也有dependencies）
+                        if embed_config['dependencies']:
+                            process_dependencies_recursive(embed_config['dependencies'], visited_categories)
+        
+        if config['embeds']:
+            logger.info(f"Processing {len(config['embeds'])} embedded ClientLibs (recursive)")
+            process_embeds_recursive(config['embeds'])
+        
+        # 处理 dependencies（依赖的其他 ClientLibs）- 递归处理
+        def process_dependencies_recursive(dep_categories: List[str], visited_categories: Set[str] = None):
+            """递归处理依赖的 ClientLibs"""
+            if visited_categories is None:
+                visited_categories = set()
+            
+            for dep_category in dep_categories:
+                # 防止循环依赖
+                if dep_category in visited_categories:
+                    logger.debug(f"Skipping already visited dependency category: {dep_category}")
+                    continue
+                
+                visited_categories.add(dep_category)
+                dep_clientlibs = find_clientlib_by_category(dep_category, aem_repo_path)
+                
+                for clientlib_dir in dep_clientlibs:
+                    # 查找CSS文件（包括子目录，特别是css/目录）
+                    clientlib_path = Path(clientlib_dir)
+                    # 查找根目录和css子目录
+                    css_search_paths = [
+                        clientlib_path.glob('*.css'),  # 根目录
+                        clientlib_path.glob('css/*.css'),  # css子目录
+                        clientlib_path.rglob('*.css'),  # 所有子目录
+                    ]
+                    
+                    for css_search in css_search_paths:
+                        for css_file in css_search:
+                            if css_file.is_file():
+                                rules = extract_css_rules_from_file(str(css_file), css_classes)
+                                for class_name, rule in rules.items():
+                                    if class_name not in results:
+                                        results[class_name] = {}
+                                    results[class_name][str(css_file)] = rule
+                    
+                    # 递归处理依赖的ClientLibs
+                    dep_config_file = Path(clientlib_dir) / '.content.xml'
+                    if dep_config_file.exists():
+                        dep_config = parse_clientlib_config(str(dep_config_file))
+                        if dep_config['dependencies']:
+                            process_dependencies_recursive(dep_config['dependencies'], visited_categories)
+                        # 也处理embeds（因为dependencies的ClientLibs可能也有embeds）
+                        if dep_config['embeds']:
+                            process_embeds_recursive(dep_config['embeds'], visited_categories)
+        
+        if config['dependencies']:
+            logger.info(f"Processing {len(config['dependencies'])} dependency ClientLibs (recursive)")
+            process_dependencies_recursive(config['dependencies'])
     
     # 策略 3: 从 HTL 中提取样式文件引用
     if htl_content:
@@ -383,17 +620,89 @@ def find_css_for_classes(
         category_matches = re.findall(categories_pattern, htl_content, re.IGNORECASE)
         
         for category in category_matches:
+            # 清理category（移除可能的引号）
+            category = category.strip().strip('"\'')
             # 根据 category 查找 ClientLibs
             clientlib_dirs = find_clientlib_by_category(category, aem_repo_path)
             for clientlib_dir in clientlib_dirs:
-                for css_file in Path(clientlib_dir).glob('*.css'):
-                    rules = extract_css_rules_from_file(str(css_file), css_classes)
+                clientlib_path = Path(clientlib_dir)
+                # 查找CSS文件（包括子目录，特别是css/目录）
+                css_search_paths = [
+                    clientlib_path.glob('*.css'),  # 根目录
+                    clientlib_path.glob('css/*.css'),  # css子目录
+                    clientlib_path.rglob('*.css'),  # 所有子目录
+                ]
+                
+                for css_search in css_search_paths:
+                    for css_file in css_search:
+                        if css_file.is_file():
+                            rules = extract_css_rules_from_file(str(css_file), css_classes)
+                            for class_name, rule in rules.items():
+                                if class_name not in results:
+                                    results[class_name] = {}
+                                results[class_name][str(css_file)] = rule
+    
+    # 策略 5: 查找CSS变量文件、主题文件、响应式文件
+    component_dir = Path(component_path)
+    parent_dir = component_dir.parent
+    # 向上查找，找到styles/css目录
+    current_dir = parent_dir
+    for depth in range(5):
+        for styles_dir_name in ['styles', 'css']:
+            # CSS变量文件
+            variables_file = current_dir / styles_dir_name / 'variables.css'
+            if variables_file.exists():
+                # CSS变量文件通常不包含具体的class规则，但我们需要记录它
+                logger.debug(f"Found CSS variables file: {variables_file}")
+            
+            # 主题CSS文件
+            themes_dir = current_dir / styles_dir_name / 'themes'
+            if themes_dir.exists():
+                for theme_file in themes_dir.glob('*.css'):
+                    rules = extract_css_rules_from_file(str(theme_file), css_classes)
                     for class_name, rule in rules.items():
                         if class_name not in results:
                             results[class_name] = {}
-                        results[class_name][str(css_file)] = rule
+                        results[class_name][str(theme_file)] = rule
+            
+            # 响应式CSS文件
+            responsive_dir = current_dir / styles_dir_name / 'responsive'
+            if responsive_dir.exists():
+                for responsive_file in responsive_dir.glob('*.css'):
+                    rules = extract_css_rules_from_file(str(responsive_file), css_classes)
+                    for class_name, rule in rules.items():
+                        if class_name not in results:
+                            results[class_name] = {}
+                        results[class_name][str(responsive_file)] = rule
+        
+        if current_dir == current_dir.parent:
+            break
+        current_dir = current_dir.parent
     
-    # 策略 4: 在 AEM repository 中全局搜索（作为最后手段）
+    # 策略 6: 从JavaScript中提取CSS（CSS-in-JS）
+    if js_content:
+        css_info = extract_css_from_javascript(js_content)
+        if css_info['css_in_js']:
+            logger.info(f"Found {len(css_info['css_in_js'])} CSS-in-JS blocks in JavaScript")
+            for idx, css_block in enumerate(css_info['css_in_js']):
+                # 尝试从CSS-in-JS中提取规则
+                for class_name in css_classes:
+                    pattern = rf'\.{re.escape(class_name)}\s*\{{([^}}]+)\}}'
+                    matches = re.findall(pattern, css_block, re.IGNORECASE)
+                    if matches:
+                        if class_name not in results:
+                            results[class_name] = {}
+                        results[class_name][f'javascript-css-in-js-{idx}'] = matches[0]
+        
+        # 记录动态添加的CSS类
+        if css_info['dynamic_classes']:
+            logger.info(f"Found {len(css_info['dynamic_classes'])} dynamically added CSS classes")
+            # 将这些动态类添加到css_classes中，以便后续查找
+            for dynamic_class in css_info['dynamic_classes']:
+                if dynamic_class not in css_classes:
+                    css_classes.add(dynamic_class)
+    
+    # 策略 7: 在 AEM repository 中全局搜索（作为最后手段）
     # 只在前面策略都没找到时才使用（性能考虑）
     missing_classes = css_classes - set(results.keys())
     if missing_classes:
