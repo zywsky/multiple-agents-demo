@@ -1,0 +1,33 @@
+INFO:__main__:
+============================================================
+INFO:__main__:Testing Component: Button Component (Simple)
+INFO:__main__:ResourceType: example/components/button
+INFO:__main__:============================================================
+
+INFO:__main__:AEM Repo Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components
+INFO:__main__:Component Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button
+INFO:__main__:BDL Library Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library
+INFO:__main__:Output Path: /Users/zyw/projects/ai-projects/multiple-agents/output/Button Component (Simple)
+
+INFO:__main__:Starting workflow...
+
+INFO:workflow.graph:Collecting files from: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button
+INFO:workflow.graph:Found 7 files in current component
+INFO:workflow.graph:Building component dependency tree...
+INFO:utils.dependency_resolver:Building dependency tree for example/components/button
+INFO:utils.dependency_resolver:Component example/components/button has 5 dependencies
+WARNING:utils.dependency_resolver:Dependency component not found: button.icon
+WARNING:utils.dependency_resolver:Dependency component not found: button.attributes
+WARNING:utils.dependency_resolver:Dependency component not found: button.element
+WARNING:utils.dependency_resolver:Dependency component not found: button.text
+WARNING:utils.dependency_resolver:Dependency component not found: button.iconAlt
+INFO:workflow.graph:Found 0 files in 0 dependency components
+INFO:workflow.graph:Total files collected: 7 (current: 7, dependencies: 0)
+INFO:workflow.graph:Files to analyze: 7 current component, 0 dependency components
+INFO:workflow.graph:Analyzing current component: 7 files. HTL: 0, Dialog: 1, JS: 1, Java: 1
+INFO:workflow.graph:Will analyze 4 critical files from current component
+INFO:workflow.graph:Analyzing file 1/4: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/_cq_dialog/.content.xml
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 2/4: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/button.js
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"

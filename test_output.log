@@ -1,0 +1,201 @@
+INFO:__main__:
+================================================================================
+INFO:__main__:Testing Component: Button Component (Simple)
+INFO:__main__:ResourceType: example/components/button
+INFO:__main__:Test Scenario: 基础组件测试 - 无依赖，简单结构
+INFO:__main__:================================================================================
+
+INFO:__main__:AEM Repo Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components
+INFO:__main__:Component Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button
+INFO:__main__:BDL Library Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library
+INFO:__main__:Output Path: /Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)
+
+INFO:__main__:Starting workflow...
+
+INFO:workflow.graph:Collecting files from: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button
+INFO:workflow.graph:Found 10 files in current component
+INFO:workflow.graph:Building component dependency tree...
+INFO:utils.dependency_resolver:Building dependency tree for example/components/button
+INFO:utils.dependency_resolver:Component example/components/button has 6 dependencies
+WARNING:utils.dependency_resolver:Dependency component not found: button.text
+WARNING:utils.dependency_resolver:Dependency component not found: button.attributes
+WARNING:utils.dependency_resolver:Dependency component not found: button.customStyles
+WARNING:utils.dependency_resolver:Dependency component not found: button.element
+WARNING:utils.dependency_resolver:Dependency component not found: button.iconAlt
+WARNING:utils.dependency_resolver:Dependency component not found: button.icon
+INFO:workflow.graph:Found 0 files in 0 dependency components
+INFO:workflow.graph:Total files collected: 10 (current: 10, dependencies: 0)
+INFO:workflow.graph:Files to analyze: 10 current component, 0 dependency components
+INFO:workflow.graph:Analyzing current component: 10 files. HTL: 0, Dialog: 1, JS: 1, Java: 3
+INFO:workflow.graph:Will analyze 6 critical files from current component
+INFO:workflow.graph:Analyzing file 1/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/_cq_dialog/.content.xml
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 2/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/button.js
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 3/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/BaseComponentModel.java
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 4/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/ButtonHelper.java
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 5/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/ButtonModel.java
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 6/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/.content.xml
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Completed analysis: 6/6 current component files, 0 dependency component files
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Selected 2 BDL components. Reasoning: 2 mappings provided.
+INFO:workflow.graph:Validating 2 selected BDL components...
+INFO:workflow.graph:✓ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/packages/mui-material/src/Button/Button.tsx: Component matches (relevance: 1.00)
+INFO:workflow.graph:✓ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/packages/mui-material/src/TextField/TextField.tsx: Component matches (relevance: 0.70)
+INFO:workflow.graph:Enhanced JS analysis for /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/button.js: 0 dependencies, 2 event listeners
+INFO:workflow.graph:Built enhanced JS analysis summary for 1 JavaScript files
+INFO:workflow.graph:Parsed Java Sling Model: BaseComponentModel
+INFO:workflow.graph:Finding Java class dependencies for BaseComponentModel
+INFO:workflow.graph:Parsed Java Sling Model: ButtonHelper
+INFO:workflow.graph:Finding Java class dependencies for ButtonHelper
+INFO:workflow.graph:Parsed Java Sling Model: ButtonModel
+INFO:workflow.graph:Finding Java class dependencies for ButtonModel
+INFO:utils.java_analyzer:Found parent class: BaseComponentModel at /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/BaseComponentModel.java
+INFO:utils.java_analyzer:Found referenced class: com.example.components.models.ButtonHelper at /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/ButtonHelper.java
+INFO:workflow.graph:Found 2 Java class dependencies
+INFO:workflow.graph:Built Java analysis summary for 3 Sling Models (including dependencies)
+INFO:workflow.graph:No existing React components found for dependencies, will use BDL components
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for CodeWritingAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for CodeWritingAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Extracted CSS code from output (148 chars)
+WARNING:workflow.graph:Received unstructured code output, using improved code extraction
+WARNING:workflow.graph:Generated code warnings: ['Component may not return JSX (check return statement)']
+INFO:workflow.graph:Code generated, saving to: /Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)/Button.jsx
+INFO:workflow.graph:CSS code generated, saving to: /Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)/Button.module.css
+INFO:utils.component_registry:Saved component registry with 1 entries
+INFO:utils.component_registry:Registered component: example/components/button -> Button
+INFO:workflow.graph:Registered component in registry: example/components/button -> Button
+INFO:workflow.graph:Reviewing code (iteration 0)...
+INFO:workflow.graph:Code written to: /Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)/Button.jsx
+INFO:workflow.graph:Running security review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for SecurityReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for SecurityReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running build review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running BDL review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+ERROR:__main__:
+================================================================================
+ERROR:__main__:❌ Workflow failed: name 'build_execution_result_obj' is not defined
+ERROR:__main__:================================================================================
+
+Traceback (most recent call last):
+  File "/Users/zyw/projects/ai-projects/multiple-agents/comprehensive_test.py", line 144, in test_component
+    final_state = graph.invoke(initial_state, config=config)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zyw/.pyenv/versions/3.12.11/lib/python3.12/site-packages/langgraph/pregel/main.py", line 3071, in invoke
+    for chunk in self.stream(
+                 ^^^^^^^^^^^^
+  File "/Users/zyw/.pyenv/versions/3.12.11/lib/python3.12/site-packages/langgraph/pregel/main.py", line 2646, in stream
+    for _ in runner.tick(
+             ^^^^^^^^^^^^
+  File "/Users/zyw/.pyenv/versions/3.12.11/lib/python3.12/site-packages/langgraph/pregel/_runner.py", line 167, in tick
+    run_with_retry(
+  File "/Users/zyw/.pyenv/versions/3.12.11/lib/python3.12/site-packages/langgraph/pregel/_retry.py", line 42, in run_with_retry
+    return task.proc.invoke(task.input, config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zyw/.pyenv/versions/3.12.11/lib/python3.12/site-packages/langgraph/_internal/_runnable.py", line 656, in invoke
+    input = context.run(step.invoke, input, config, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zyw/.pyenv/versions/3.12.11/lib/python3.12/site-packages/langgraph/_internal/_runnable.py", line 400, in invoke
+    ret = self.func(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zyw/projects/ai-projects/multiple-agents/workflow/graph.py", line 1500, in review_code
+    build_execution_data = extract_review_data(build_execution_result_obj, "Build execution review failed")
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'build_execution_result_obj' is not defined
+During task with name 'review_code' and id '11b8b107-b33a-4c1b-f087-47d502b61465'
+INFO:__main__:
+================================================================================
+INFO:__main__:Testing Component: Card Component (Medium)
+INFO:__main__:ResourceType: example/components/card
+INFO:__main__:Test Scenario: 中等组件测试 - 依赖button，包含多个功能
+INFO:__main__:================================================================================
+
+INFO:__main__:AEM Repo Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components
+INFO:__main__:Component Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card
+INFO:__main__:BDL Library Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library
+INFO:__main__:Output Path: /Users/zyw/projects/ai-projects/multiple-agents/output/Card_Component_(Medium)
+
+INFO:__main__:Starting workflow...
+
+INFO:workflow.graph:Collecting files from: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card
+INFO:workflow.graph:Found 11 files in current component
+INFO:workflow.graph:Building component dependency tree...
+INFO:utils.dependency_resolver:Building dependency tree for example/components/card
+INFO:utils.dependency_resolver:Component example/components/card has 10 dependencies
+WARNING:utils.dependency_resolver:Dependency component not found: card.cssClass
+WARNING:utils.dependency_resolver:Dependency component not found: card.tags
+WARNING:utils.dependency_resolver:Dependency component not found: card.linkUrl
+WARNING:utils.dependency_resolver:Dependency component not found: ${card.buttonResource @ resourceType=
+WARNING:utils.dependency_resolver:Dependency component not found: example/components/button
+WARNING:utils.dependency_resolver:Dependency component not found: card.badge
+WARNING:utils.dependency_resolver:Dependency component not found: card.imagePath
+WARNING:utils.dependency_resolver:Dependency component not found: card.description
+WARNING:utils.dependency_resolver:Dependency component not found: card.showFooter
+WARNING:utils.dependency_resolver:Dependency component not found: card.title
+INFO:workflow.graph:Found 0 files in 0 dependency components
+INFO:workflow.graph:Total files collected: 11 (current: 11, dependencies: 0)
+INFO:workflow.graph:Files to analyze: 11 current component, 0 dependency components
+INFO:workflow.graph:Analyzing current component: 11 files. HTL: 0, Dialog: 1, JS: 2, Java: 1
+INFO:workflow.graph:Will analyze 6 critical files from current component
+INFO:workflow.graph:Analyzing file 1/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card/_cq_dialog/.content.xml
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 2/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card/card.js
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 3/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card/clientlibs/js/card.js
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 4/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card/CardModel.java
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 5/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card/.content.xml
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 6/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card/clientlibs/.content.xml
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Completed analysis: 6/6 current component files, 0 dependency component files
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for BDLSelectionAgent after trying all methods

@@ -1,0 +1,152 @@
+{
+  "test_time": "2026-01-18T15:22:36.821574",
+  "total_tests": 4,
+  "passed_tests": 0,
+  "failed_tests": 4,
+  "pass_rate": 0.0,
+  "results": [
+    {
+      "component_name": "Button Component (Simple)",
+      "resource_type": "example/components/button",
+      "success": false,
+      "duration_seconds": 892.795825,
+      "iterations": 3,
+      "generated_files": [
+        "/Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)/Button.jsx",
+        "/Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)/Button.module.css",
+        "/Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)/.component_registry.json"
+      ],
+      "errors": [],
+      "warnings": [
+        "Core review failed: security",
+        "Core review failed: build_execution",
+        "Core review failed: bdl_component_usage",
+        "Core review failed: css_import",
+        "Core review failed: component_reference"
+      ],
+      "review_summary": {
+        "passed": false,
+        "core_reviews": {
+          "security": false,
+          "build_execution": false,
+          "bdl_component_usage": false,
+          "css_import": false,
+          "component_reference": false
+        },
+        "consistency_reviews": {
+          "component_completeness": false,
+          "props_consistency": false,
+          "style_consistency": false,
+          "functionality_consistency": false
+        }
+      }
+    },
+    {
+      "component_name": "Card Component (Medium)",
+      "resource_type": "example/components/card",
+      "success": false,
+      "duration_seconds": 1082.967654,
+      "iterations": 3,
+      "generated_files": [
+        "/Users/zyw/projects/ai-projects/multiple-agents/output/Card_Component_(Medium)/Card.jsx",
+        "/Users/zyw/projects/ai-projects/multiple-agents/output/Card_Component_(Medium)/Card.module.css",
+        "/Users/zyw/projects/ai-projects/multiple-agents/output/Card_Component_(Medium)/.component_registry.json"
+      ],
+      "errors": [],
+      "warnings": [
+        "Core review failed: build_execution",
+        "Core review failed: bdl_component_usage",
+        "Core review failed: css_import",
+        "Core review failed: component_reference"
+      ],
+      "review_summary": {
+        "passed": false,
+        "core_reviews": {
+          "security": true,
+          "build_execution": false,
+          "bdl_component_usage": false,
+          "css_import": false,
+          "component_reference": false
+        },
+        "consistency_reviews": {
+          "component_completeness": true,
+          "props_consistency": false,
+          "style_consistency": false,
+          "functionality_consistency": false
+        }
+      }
+    },
+    {
+      "component_name": "Container Component (Large)",
+      "resource_type": "example/components/container",
+      "success": false,
+      "duration_seconds": 918.757156,
+      "iterations": 3,
+      "generated_files": [
+        "/Users/zyw/projects/ai-projects/multiple-agents/output/Container_Component_(Large)/Container.jsx",
+        "/Users/zyw/projects/ai-projects/multiple-agents/output/Container_Component_(Large)/Container.module.css",
+        "/Users/zyw/projects/ai-projects/multiple-agents/output/Container_Component_(Large)/.component_registry.json"
+      ],
+      "errors": [],
+      "warnings": [
+        "Core review failed: security",
+        "Core review failed: build_execution",
+        "Core review failed: bdl_component_usage",
+        "Core review failed: css_import",
+        "Core review failed: component_reference"
+      ],
+      "review_summary": {
+        "passed": false,
+        "core_reviews": {
+          "security": false,
+          "build_execution": false,
+          "bdl_component_usage": false,
+          "css_import": false,
+          "component_reference": false
+        },
+        "consistency_reviews": {
+          "component_completeness": false,
+          "props_consistency": false,
+          "style_consistency": false,
+          "functionality_consistency": false
+        }
+      }
+    },
+    {
+      "component_name": "Page Component (Extra Large)",
+      "resource_type": "example/components/page",
+      "success": false,
+      "duration_seconds": 893.505125,
+      "iterations": 3,
+      "generated_files": [
+        "/Users/zyw/projects/ai-projects/multiple-agents/output/Page_Component_(Extra_Large)/Page.jsx",
+        "/Users/zyw/projects/ai-projects/multiple-agents/output/Page_Component_(Extra_Large)/Page.module.css",
+        "/Users/zyw/projects/ai-projects/multiple-agents/output/Page_Component_(Extra_Large)/.component_registry.json"
+      ],
+      "errors": [],
+      "warnings": [
+        "Core review failed: security",
+        "Core review failed: build_execution",
+        "Core review failed: bdl_component_usage",
+        "Core review failed: css_import",
+        "Core review failed: component_reference"
+      ],
+      "review_summary": {
+        "passed": false,
+        "core_reviews": {
+          "security": false,
+          "build_execution": false,
+          "bdl_component_usage": false,
+          "css_import": false,
+          "component_reference": false
+        },
+        "consistency_reviews": {
+          "component_completeness": false,
+          "props_consistency": false,
+          "style_consistency": false,
+          "functionality_consistency": false
+        }
+      }
+    }
+  ]
+}

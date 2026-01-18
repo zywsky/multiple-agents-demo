@@ -1,0 +1,851 @@
+INFO:__main__:
+================================================================================
+INFO:__main__:Testing Component: Button Component (Simple)
+INFO:__main__:ResourceType: example/components/button
+INFO:__main__:Test Scenario: 基础组件测试 - 无依赖，简单结构
+INFO:__main__:================================================================================
+
+INFO:__main__:AEM Repo Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components
+INFO:__main__:Component Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button
+INFO:__main__:BDL Library Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library
+INFO:__main__:Output Path: /Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)
+
+INFO:__main__:Starting workflow...
+
+INFO:workflow.graph:Collecting files from: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button
+INFO:workflow.graph:Found 10 files in current component
+INFO:workflow.graph:Building component dependency tree...
+INFO:utils.dependency_resolver:Building dependency tree for example/components/button
+INFO:utils.dependency_resolver:Component example/components/button has 6 dependencies
+WARNING:utils.dependency_resolver:Dependency component not found: button.iconAlt
+WARNING:utils.dependency_resolver:Dependency component not found: button.customStyles
+WARNING:utils.dependency_resolver:Dependency component not found: button.attributes
+WARNING:utils.dependency_resolver:Dependency component not found: button.element
+WARNING:utils.dependency_resolver:Dependency component not found: button.text
+WARNING:utils.dependency_resolver:Dependency component not found: button.icon
+INFO:workflow.graph:Found 0 files in 0 dependency components
+INFO:workflow.graph:Total files collected: 10 (current: 10, dependencies: 0)
+INFO:workflow.graph:Files to analyze: 10 current component, 0 dependency components
+INFO:workflow.graph:Analyzing current component: 10 files. HTL: 0, Dialog: 1, JS: 1, Java: 3
+INFO:workflow.graph:Will analyze 6 critical files from current component
+INFO:workflow.graph:Analyzing file 1/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/_cq_dialog/.content.xml
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 2/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/button.js
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 3/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/BaseComponentModel.java
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 4/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/ButtonHelper.java
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 5/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/ButtonModel.java
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 6/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/.content.xml
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Completed analysis: 6/6 current component files, 0 dependency component files
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for BDLSelectionAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for BDLSelectionAgent, returning raw content. Consider improving the prompt.
+WARNING:workflow.graph:Failed to get structured output, using intelligent text parsing...
+INFO:workflow.graph:Validating 1 selected BDL components...
+WARNING:workflow.graph:✗ //: Component relevance too low (relevance: 0.00 < 0.4) - Searching for alternatives...
+INFO:workflow.graph:Not enough validated components, searching for additional matches...
+INFO:workflow.graph:Enhanced JS analysis for /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/button.js: 0 dependencies, 2 event listeners
+INFO:workflow.graph:Built enhanced JS analysis summary for 1 JavaScript files
+INFO:workflow.graph:Parsed Java Sling Model: BaseComponentModel
+INFO:workflow.graph:Finding Java class dependencies for BaseComponentModel
+INFO:workflow.graph:Parsed Java Sling Model: ButtonHelper
+INFO:workflow.graph:Finding Java class dependencies for ButtonHelper
+INFO:workflow.graph:Parsed Java Sling Model: ButtonModel
+INFO:workflow.graph:Finding Java class dependencies for ButtonModel
+INFO:utils.java_analyzer:Found parent class: BaseComponentModel at /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/BaseComponentModel.java
+INFO:utils.java_analyzer:Found referenced class: com.example.components.models.ButtonHelper at /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-button/ButtonHelper.java
+INFO:workflow.graph:Found 2 Java class dependencies
+INFO:workflow.graph:Built Java analysis summary for 3 Sling Models (including dependencies)
+INFO:utils.component_registry:Loaded component registry with 1 entries
+INFO:workflow.graph:No existing React components found for dependencies, will use BDL components
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for CodeWritingAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for CodeWritingAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Extracted CSS code from output (188 chars)
+WARNING:workflow.graph:Received unstructured code output, using improved code extraction
+ERROR:workflow.graph:Generated code has basic errors: ['Unclosed tag: <ButtonProps> (missing 1 closing tag(s))']
+WARNING:workflow.graph:Generated code validation failed, but continuing to review stage for detailed feedback
+INFO:workflow.graph:Code generated, saving to: /Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)/Button.jsx
+INFO:workflow.graph:CSS code generated, saving to: /Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)/Button.module.css
+INFO:utils.component_registry:Loaded component registry with 1 entries
+INFO:utils.component_registry:Saved component registry with 1 entries
+INFO:utils.component_registry:Registered component: example/components/button -> Button
+INFO:workflow.graph:Registered component in registry: example/components/button -> Button
+INFO:workflow.graph:Reviewing code (iteration 0)...
+INFO:workflow.graph:Code written to: /Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)/Button.jsx
+INFO:workflow.graph:Running security review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for SecurityReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for SecurityReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running build review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running BDL review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running build execution review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running BDL component usage review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for BDLComponentUsageReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for BDLComponentUsageReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running CSS import review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running component reference review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for ComponentReferenceReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for ComponentReferenceReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running component completeness review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running props consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running style consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for StyleConsistencyReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for StyleConsistencyReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running functionality consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for FunctionalityConsistencyReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for FunctionalityConsistencyReviewAgent, returning raw content. Consider improving the prompt.
+WARNING:workflow.graph:Consistency issues found: component_completeness, style_consistency, functionality_consistency
+INFO:workflow.graph:Review completed. Passed: False
+INFO:workflow.graph:Reviews not passed. Continuing to correction (iteration 1/3).
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:utils.code_validator:Code extraction failed completely (extracted 0 chars), using fallback code (2110 chars)
+WARNING:workflow.graph:Corrected code still has basic errors: ['Unclosed tag: <ButtonProps> (missing 1 closing tag(s))']
+INFO:workflow.graph:Code corrected (iteration 1). Code length: 2110 chars
+INFO:workflow.graph:Corrected code written to: /Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)/Button.jsx
+INFO:workflow.graph:Reviewing code (iteration 1)...
+INFO:workflow.graph:Code written to: /Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)/Button.jsx
+INFO:workflow.graph:Running security review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for SecurityReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for SecurityReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running build review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running BDL review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running build execution review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running BDL component usage review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for BDLComponentUsageReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for BDLComponentUsageReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running CSS import review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running component reference review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for ComponentReferenceReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for ComponentReferenceReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running component completeness review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running props consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running style consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running functionality consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for FunctionalityConsistencyReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for FunctionalityConsistencyReviewAgent, returning raw content. Consider improving the prompt.
+WARNING:workflow.graph:Consistency issues found: component_completeness, style_consistency, functionality_consistency
+INFO:workflow.graph:Review completed. Passed: False
+INFO:workflow.graph:Reviews not passed. Continuing to correction (iteration 2/3).
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:workflow.graph:Corrected code still has basic errors: ['Unclosed tag: <BDLButton> (missing 1 closing tag(s))', 'Unclosed tag: <ButtonProps> (missing 1 closing tag(s))']
+INFO:workflow.graph:Code corrected (iteration 2). Code length: 4220 chars
+INFO:workflow.graph:Corrected code written to: /Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)/Button.jsx
+INFO:workflow.graph:Reviewing code (iteration 2)...
+INFO:workflow.graph:Code written to: /Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)/Button.jsx
+INFO:workflow.graph:Running security review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for SecurityReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for SecurityReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running build review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running BDL review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running build execution review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running BDL component usage review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for BDLComponentUsageReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for BDLComponentUsageReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running CSS import review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running component reference review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for ComponentReferenceReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for ComponentReferenceReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running component completeness review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running props consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running style consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running functionality consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Review completed. Passed: False
+INFO:workflow.graph:Reviews not passed. Continuing to correction (iteration 3/3).
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:workflow.graph:Corrected code still has basic errors: ['Unclosed tag: <BDLButton> (missing 1 closing tag(s))', 'Unclosed tag: <ButtonProps> (missing 1 closing tag(s))']
+INFO:workflow.graph:Code corrected (iteration 3). Code length: 2748 chars
+INFO:workflow.graph:Corrected code written to: /Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)/Button.jsx
+INFO:workflow.graph:Reviewing code (iteration 3)...
+INFO:workflow.graph:Code written to: /Users/zyw/projects/ai-projects/multiple-agents/output/Button_Component_(Simple)/Button.jsx
+INFO:workflow.graph:Running security review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for SecurityReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for SecurityReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running build review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running BDL review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running build execution review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running BDL component usage review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running CSS import review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for CSSImportReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for CSSImportReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running component reference review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for ComponentReferenceReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for ComponentReferenceReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running component completeness review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for ComponentCompletenessReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for ComponentCompletenessReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running props consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running style consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for StyleConsistencyReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for StyleConsistencyReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running functionality consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:workflow.graph:Consistency issues found: component_completeness, style_consistency, functionality_consistency
+INFO:workflow.graph:Review completed. Passed: False
+WARNING:workflow.graph:Reached max iterations (3). Ending workflow.
+INFO:__main__:✅ Component registered: example/components/button -> Button
+WARNING:__main__:
+================================================================================
+WARNING:__main__:⚠️ Workflow completed but review did not pass
+WARNING:__main__:Duration: 1069.85 seconds
+WARNING:__main__:Iterations: 3
+WARNING:__main__:================================================================================
+
+INFO:__main__:
+================================================================================
+INFO:__main__:Testing Component: Card Component (Medium)
+INFO:__main__:ResourceType: example/components/card
+INFO:__main__:Test Scenario: 中等组件测试 - 依赖button，包含多个功能
+INFO:__main__:================================================================================
+
+INFO:__main__:AEM Repo Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components
+INFO:__main__:Component Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card
+INFO:__main__:BDL Library Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library
+INFO:__main__:Output Path: /Users/zyw/projects/ai-projects/multiple-agents/output/Card_Component_(Medium)
+
+INFO:__main__:Starting workflow...
+
+INFO:workflow.graph:Collecting files from: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card
+INFO:workflow.graph:Found 11 files in current component
+INFO:workflow.graph:Building component dependency tree...
+INFO:utils.dependency_resolver:Building dependency tree for example/components/card
+INFO:utils.dependency_resolver:Component example/components/card has 10 dependencies
+WARNING:utils.dependency_resolver:Dependency component not found: card.linkUrl
+WARNING:utils.dependency_resolver:Dependency component not found: card.badge
+WARNING:utils.dependency_resolver:Dependency component not found: card.showFooter
+WARNING:utils.dependency_resolver:Dependency component not found: ${card.buttonResource @ resourceType=
+WARNING:utils.dependency_resolver:Dependency component not found: card.cssClass
+WARNING:utils.dependency_resolver:Dependency component not found: card.imagePath
+WARNING:utils.dependency_resolver:Dependency component not found: card.tags
+WARNING:utils.dependency_resolver:Dependency component not found: card.title
+WARNING:utils.dependency_resolver:Dependency component not found: example/components/button
+WARNING:utils.dependency_resolver:Dependency component not found: card.description
+INFO:workflow.graph:Found 0 files in 0 dependency components
+INFO:workflow.graph:Total files collected: 11 (current: 11, dependencies: 0)
+INFO:workflow.graph:Files to analyze: 11 current component, 0 dependency components
+INFO:workflow.graph:Analyzing current component: 11 files. HTL: 0, Dialog: 1, JS: 2, Java: 1
+INFO:workflow.graph:Will analyze 6 critical files from current component
+INFO:workflow.graph:Analyzing file 1/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card/_cq_dialog/.content.xml
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 2/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card/card.js
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 3/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card/clientlibs/js/card.js
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 4/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card/CardModel.java
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 5/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card/.content.xml
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 6/6: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card/clientlibs/.content.xml
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Completed analysis: 6/6 current component files, 0 dependency component files
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for BDLSelectionAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for BDLSelectionAgent, returning raw content. Consider improving the prompt.
+WARNING:workflow.graph:Failed to get structured output, using intelligent text parsing...
+INFO:workflow.graph:Validating 13 selected BDL components...
+WARNING:workflow.graph:✗ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/TextField.js`（通过设置multiline属性）。: Component relevance too low (relevance: 0.00 < 0.4) - Searching for alternatives...
+WARNING:workflow.graph:✗ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/Card.js`。虽然没有完全匹配的，但它可以作为一个基础的容器来构建卡片结构。: Component relevance too low (relevance: 0.30 < 0.4) - Searching for alternatives...
+WARNING:workflow.graph:✗ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/Card.js`中添加点击事件处理逻辑。: Component relevance too low (relevance: 0.30 < 0.4) - Searching for alternatives...
+WARNING:workflow.graph:✗ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/Image.js`组件，并结合懒加载库（如`react: Component relevance too low (relevance: 0.30 < 0.4) - Searching for alternatives...
+WARNING:workflow.graph:✗ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/Image.js`: Component relevance too low (relevance: 0.30 < 0.4) - Searching for alternatives...
+WARNING:workflow.graph:✗ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/TextField.js`: Component relevance too low (relevance: 0.00 < 0.4) - Searching for alternatives...
+WARNING:workflow.graph:✗ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/Card.js`: Component relevance too low (relevance: 0.30 < 0.4) - Searching for alternatives...
+WARNING:workflow.graph:✗ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/Input.js`，并通过自定义逻辑处理路径相关功能。: Component relevance too low (relevance: 0.00 < 0.4) - Searching for alternatives...
+WARNING:workflow.graph:✗ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/Checkbox.js`: Component relevance too low (relevance: 0.00 < 0.4) - Searching for alternatives...
+WARNING:workflow.graph:✗ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/Checkbox.js`。: Component relevance too low (relevance: 0.00 < 0.4) - Searching for alternatives...
+WARNING:workflow.graph:✗ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/Input.js`: Component relevance too low (relevance: 0.00 < 0.4) - Searching for alternatives...
+WARNING:workflow.graph:✗ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/TextField.js`。: Component relevance too low (relevance: 0.00 < 0.4) - Searching for alternatives...
+WARNING:workflow.graph:✗ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/Card.js`中通过CSS和状态管理实现悬停效果。: Component relevance too low (relevance: 0.30 < 0.4) - Searching for alternatives...
+INFO:workflow.graph:Not enough validated components, searching for additional matches...
+INFO:workflow.graph:Enhanced JS analysis for /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card/card.js: 0 dependencies, 4 event listeners
+INFO:workflow.graph:Enhanced JS analysis for /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-card/clientlibs/js/card.js: 0 dependencies, 0 event listeners
+INFO:workflow.graph:Built enhanced JS analysis summary for 2 JavaScript files
+INFO:workflow.graph:Parsed Java Sling Model: CardModel
+INFO:workflow.graph:Finding Java class dependencies for CardModel
+INFO:workflow.graph:Built Java analysis summary for 1 Sling Models (including dependencies)
+INFO:utils.component_registry:Loaded component registry with 1 entries
+INFO:workflow.graph:No existing React components found for dependencies, will use BDL components
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for CodeWritingAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for CodeWritingAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Extracted CSS code from output (120 chars)
+WARNING:workflow.graph:Received unstructured code output, using improved code extraction
+ERROR:workflow.graph:Generated code has basic errors: ['Unclosed tag: <CardProps> (missing 1 closing tag(s))', 'Unclosed tag: <input> (missing 2 closing tag(s))']
+WARNING:workflow.graph:Generated code validation failed, but continuing to review stage for detailed feedback
+INFO:workflow.graph:Code generated, saving to: /Users/zyw/projects/ai-projects/multiple-agents/output/Card_Component_(Medium)/Card.jsx
+INFO:workflow.graph:CSS code generated, saving to: /Users/zyw/projects/ai-projects/multiple-agents/output/Card_Component_(Medium)/Card.module.css
+INFO:utils.component_registry:Loaded component registry with 1 entries
+INFO:utils.component_registry:Saved component registry with 1 entries
+INFO:utils.component_registry:Registered component: example/components/card -> Card
+INFO:workflow.graph:Registered component in registry: example/components/card -> Card
+INFO:workflow.graph:Reviewing code (iteration 0)...
+INFO:workflow.graph:Code written to: /Users/zyw/projects/ai-projects/multiple-agents/output/Card_Component_(Medium)/Card.jsx
+INFO:workflow.graph:Running security review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running build review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running BDL review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running build execution review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for BuildExecutionReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for BuildExecutionReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running BDL component usage review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running CSS import review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running component reference review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running component completeness review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running props consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running style consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running functionality consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for FunctionalityConsistencyReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for FunctionalityConsistencyReviewAgent, returning raw content. Consider improving the prompt.
+WARNING:workflow.graph:Consistency issues found: component_completeness, props_consistency, style_consistency, functionality_consistency
+INFO:workflow.graph:Review completed. Passed: False
+INFO:workflow.graph:Reviews not passed. Continuing to correction (iteration 1/3).
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:utils.code_validator:Code extraction failed completely (extracted 0 chars), using fallback code (2221 chars)
+WARNING:workflow.graph:Corrected code still has basic errors: ['Unclosed tag: <CardProps> (missing 1 closing tag(s))', 'Unclosed tag: <input> (missing 2 closing tag(s))']
+INFO:workflow.graph:Code corrected (iteration 1). Code length: 2221 chars
+INFO:workflow.graph:Corrected code written to: /Users/zyw/projects/ai-projects/multiple-agents/output/Card_Component_(Medium)/Card.jsx
+INFO:workflow.graph:Reviewing code (iteration 1)...
+INFO:workflow.graph:Code written to: /Users/zyw/projects/ai-projects/multiple-agents/output/Card_Component_(Medium)/Card.jsx
+INFO:workflow.graph:Running security review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for SecurityReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for SecurityReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running build review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running BDL review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running build execution review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running BDL component usage review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running CSS import review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running component reference review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running component completeness review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running props consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running style consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running functionality consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:workflow.graph:Consistency issues found: component_completeness, props_consistency, style_consistency, functionality_consistency
+INFO:workflow.graph:Review completed. Passed: False
+INFO:workflow.graph:Reviews not passed. Continuing to correction (iteration 2/3).
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:workflow.graph:Corrected code still has basic errors: ['Unclosed tag: <CardProps> (missing 1 closing tag(s))', 'Unclosed tag: <Checkbox> (missing 2 closing tag(s))']
+INFO:workflow.graph:Code corrected (iteration 2). Code length: 2763 chars
+INFO:workflow.graph:Corrected code written to: /Users/zyw/projects/ai-projects/multiple-agents/output/Card_Component_(Medium)/Card.jsx
+INFO:workflow.graph:Reviewing code (iteration 2)...
+INFO:workflow.graph:Code written to: /Users/zyw/projects/ai-projects/multiple-agents/output/Card_Component_(Medium)/Card.jsx
+INFO:workflow.graph:Running security review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for SecurityReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for SecurityReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running build review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running BDL review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running build execution review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running BDL component usage review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for BDLComponentUsageReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for BDLComponentUsageReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running CSS import review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running component reference review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running component completeness review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running props consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running style consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running functionality consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:workflow.graph:Consistency issues found: component_completeness, props_consistency, style_consistency, functionality_consistency
+INFO:workflow.graph:Review completed. Passed: False
+INFO:workflow.graph:Reviews not passed. Continuing to correction (iteration 3/3).
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:utils.code_validator:Code extraction failed completely (extracted 0 chars), using fallback code (2763 chars)
+WARNING:workflow.graph:Corrected code still has basic errors: ['Unclosed tag: <CardProps> (missing 1 closing tag(s))', 'Unclosed tag: <Checkbox> (missing 2 closing tag(s))']
+INFO:workflow.graph:Code corrected (iteration 3). Code length: 2763 chars
+INFO:workflow.graph:Corrected code written to: /Users/zyw/projects/ai-projects/multiple-agents/output/Card_Component_(Medium)/Card.jsx
+INFO:workflow.graph:Reviewing code (iteration 3)...
+INFO:workflow.graph:Code written to: /Users/zyw/projects/ai-projects/multiple-agents/output/Card_Component_(Medium)/Card.jsx
+INFO:workflow.graph:Running security review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for SecurityReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for SecurityReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running build review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running BDL review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for BDLReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for BDLReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running build execution review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running BDL component usage review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for BDLComponentUsageReviewAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for BDLComponentUsageReviewAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Running CSS import review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running component reference review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running component completeness review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running props consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running style consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Running functionality consistency review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:workflow.graph:Consistency issues found: component_completeness, props_consistency, style_consistency, functionality_consistency
+INFO:workflow.graph:Review completed. Passed: False
+WARNING:workflow.graph:Reached max iterations (3). Ending workflow.
+INFO:__main__:✅ Component registered: example/components/card -> Card
+WARNING:__main__:
+================================================================================
+WARNING:__main__:⚠️ Workflow completed but review did not pass
+WARNING:__main__:Duration: 1108.19 seconds
+WARNING:__main__:Iterations: 3
+WARNING:__main__:================================================================================
+
+INFO:__main__:
+================================================================================
+INFO:__main__:Testing Component: Container Component (Large)
+INFO:__main__:ResourceType: example/components/container
+INFO:__main__:Test Scenario: 大组件测试 - 依赖card和button，多层依赖
+INFO:__main__:================================================================================
+
+INFO:__main__:AEM Repo Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components
+INFO:__main__:Component Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-container
+INFO:__main__:BDL Library Path: /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library
+INFO:__main__:Output Path: /Users/zyw/projects/ai-projects/multiple-agents/output/Container_Component_(Large)
+
+INFO:__main__:Starting workflow...
+
+INFO:workflow.graph:Collecting files from: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-container
+INFO:workflow.graph:Found 4 files in current component
+INFO:workflow.graph:Building component dependency tree...
+INFO:utils.dependency_resolver:Building dependency tree for example/components/container
+INFO:utils.dependency_resolver:Component example/components/container has 6 dependencies
+WARNING:utils.dependency_resolver:Dependency component not found: model.footerText
+WARNING:utils.dependency_resolver:Dependency component not found: example/components/card
+WARNING:utils.dependency_resolver:Dependency component not found: model.title
+WARNING:utils.dependency_resolver:Dependency component not found: model.description
+WARNING:utils.dependency_resolver:Dependency component not found: model.showActions
+WARNING:utils.dependency_resolver:Dependency component not found: example/components/button
+INFO:workflow.graph:Found 0 files in 0 dependency components
+INFO:workflow.graph:Total files collected: 4 (current: 4, dependencies: 0)
+INFO:workflow.graph:Files to analyze: 4 current component, 0 dependency components
+INFO:workflow.graph:Analyzing current component: 4 files. HTL: 0, Dialog: 1, JS: 0, Java: 1
+INFO:workflow.graph:Will analyze 2 critical files from current component
+INFO:workflow.graph:Analyzing file 1/2: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-container/_cq_dialog/.content.xml
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Analyzing file 2/2: /Users/zyw/projects/ai-projects/multiple-agents/test_data/aem_components/example-container/ContainerModel.java
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:workflow.graph:Completed analysis: 2/2 current component files, 0 dependency component files
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for BDLSelectionAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for BDLSelectionAgent, returning raw content. Consider improving the prompt.
+WARNING:workflow.graph:Failed to get structured output, using intelligent text parsing...
+INFO:workflow.graph:Validating 4 selected BDL components...
+WARNING:workflow.graph:✗ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/packages/mui-material/src/TextField/TextField.tsx: Component relevance too low (relevance: 0.10 < 0.4) - Searching for alternatives...
+WARNING:workflow.graph:✗ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/packages/mui-material/src/TextField/TextField.types.tsx: Component relevance too low (relevance: 0.00 < 0.4) - Searching for alternatives...
+WARNING:workflow.graph:✗ /Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/packages/mui-material/src/TextField/TextField.tsx和/Users/zyw/projects/ai-projects/multiple-agents/test_data/mui_library/packages/mui-material/src/TextField/TextField.types.tsx，用于匹配AEM组件中的文本框功能。对于其他功能，如复选框、标签页以及Sling: Component relevance too low (relevance: 0.00 < 0.4) - Searching for alternatives...
+WARNING:workflow.graph:✗ /TextField.tsx: Component relevance too low (relevance: 0.00 < 0.4) - Searching for alternatives...
+INFO:workflow.graph:Not enough validated components, searching for additional matches...
+INFO:workflow.graph:Parsed Java Sling Model: ContainerModel
+INFO:workflow.graph:Finding Java class dependencies for ContainerModel
+INFO:workflow.graph:Built Java analysis summary for 1 Sling Models (including dependencies)
+INFO:utils.component_registry:Loaded component registry with 1 entries
+INFO:workflow.graph:No existing React components found for dependencies, will use BDL components
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+WARNING:agents.base_agent:Failed to parse structured output for CodeWritingAgent after trying all methods
+WARNING:agents.base_agent:Failed to parse structured output for CodeWritingAgent, returning raw content. Consider improving the prompt.
+INFO:workflow.graph:Extracted CSS code from output (75 chars)
+WARNING:workflow.graph:Received unstructured code output, using improved code extraction
+INFO:workflow.graph:Code generated, saving to: /Users/zyw/projects/ai-projects/multiple-agents/output/Container_Component_(Large)/Container.jsx
+INFO:workflow.graph:CSS code generated, saving to: /Users/zyw/projects/ai-projects/multiple-agents/output/Container_Component_(Large)/Container.module.css
+INFO:utils.component_registry:Loaded component registry with 1 entries
+INFO:utils.component_registry:Saved component registry with 1 entries
+INFO:utils.component_registry:Registered component: example/components/container -> Container
+INFO:workflow.graph:Registered component in registry: example/components/container -> Container
+INFO:workflow.graph:Reviewing code (iteration 0)...
+INFO:workflow.graph:Code written to: /Users/zyw/projects/ai-projects/multiple-agents/output/Container_Component_(Large)/Container.jsx
+INFO:workflow.graph:Running security review...
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://ark.cn-beijing.volces.com/api/v3/chat/completions "HTTP/1.1 200 OK"

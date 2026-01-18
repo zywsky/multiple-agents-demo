@@ -1,0 +1,16 @@
+```css
+.example-button {
+    /* 这里可以添加按钮的基础样式 */
+}
+
+.disabled-class {
+    /* 禁用状态的样式 */
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.clicked-class {
+    /* 点击时的动画样式 */
+    transform: scale(1.1);
+}
+```

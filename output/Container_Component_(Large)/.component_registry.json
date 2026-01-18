@@ -1,0 +1,8 @@
+{
+  "example/components/container": {
+    "react_component_name": "Container",
+    "react_component_path": "./Container",
+    "css_path": "/Users/zyw/projects/ai-projects/multiple-agents/output/Container_Component_(Large)/Container.module.css",
+    "aem_resource_type": "example/components/container"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "example/components/button": {
+    "react_component_name": "Button",
+    "react_component_path": "./Button",
+    "css_path": "/Users/zyw/projects/ai-projects/multiple-agents/output/Button Component (Simple)/Button.module.css",
+    "aem_resource_type": "example/components/button"
+  }
+}

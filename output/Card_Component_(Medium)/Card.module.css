@@ -1,0 +1,6 @@
+// CSS Module File
+.card-container {
+  /* Add your base card styles here */
+  border: 1px solid #ccc;
+  padding: 10px;
+}

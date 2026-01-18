@@ -1,0 +1,9 @@
+/* CSS Module File */
+.example-button--clicked {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+}
+.example-button--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

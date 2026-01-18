@@ -1,0 +1,8 @@
+{
+  "example/components/page": {
+    "react_component_name": "Page",
+    "react_component_path": "./Page",
+    "css_path": "/Users/zyw/projects/ai-projects/multiple-agents/output/Page_Component_(Extra_Large)/Page.module.css",
+    "aem_resource_type": "example/components/page"
+  }
+}
